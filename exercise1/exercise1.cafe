@@ -32,10 +32,12 @@ open NAT .
   var NzX : NzNat .
   eq cond(true,X,Y) = X .
   eq cond(false,X,Y) = Y .
-  eq g(X,Y) = cond(X > Y, g(X,2 * Y) * g(sd(X,Y),2 * Y), Y) .
+  eq g(X,Y) = cond(X > Y, g(X,2 * Y) * g(sd(X,Y),2 * Y), X) .
   eq oedc-fact(0) = 1 .
   eq oedc-fact(NzX) = g(NzX,1) .
   red oedc-fact(0) .
+  red oedc-fact(10) .
+  red sd(10,2) .
 close
 
 -- fibonacci
@@ -62,4 +64,37 @@ open NAT .
   red ack(0,0) .
   red ack(1,1) .
   red ack(2,2) .
+close
+
+-- 4 computing the summation v1
+open NAT .
+  op sum : Nat -> Nat .
+  var X : Nat .
+  eq sum(0) = 0 .
+  eq sum(X) = X + sum(p X) .
+  red sum(10) .
+  red sum(100) .
+close
+
+-- n,1について
+-- 1回試行するとn,n-1 2
+-- 2回試行するとn,n-1,n-2,n-3 4
+-- つまりn回目の試行ではn-1回目の試行で生成した自然数自身とそれから2^n引いた自然数が生成される
+-- このことからn回の試行でYは2^nでありn = 2^nまで計算できる
+
+-- 4 computing the summation v2
+open NAT .
+  op cond : Bool Nat Nat -> Nat .
+  op sum : Nat Nat -> Nat .
+  op oedc-sum : Nat -> Nat .
+  var X : Nat .
+  var Y : Nat .
+  eq cond(true,X,Y) = X .
+  eq cond(false,X,Y) = Y .
+  eq sum(X,Y) = cond(X > Y,sum(X,2 * Y) + sum(sd(X,Y),2 * Y), X) .
+  eq oedc-sum(0) = 0 .
+  eq oedc-sum(1) = 1 .
+  eq oedc-sum(X) = sum(X,1) .
+  red oedc-sum(10) .
+  red oedc-sum(100) .
 close
