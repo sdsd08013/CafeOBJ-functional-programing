@@ -23,7 +23,7 @@ open NAT .
   red fact(10) .
 close
 
--- odd-even divide and conquer factoriial
+-- odd-even divide and conquer factorial
 open NAT .
   op cond : Bool Nat Nat -> Nat .
   op g : Nat Nat -> Nat .
@@ -81,7 +81,7 @@ close
 -- つまりn回目の試行ではn-1回目の試行で生成した自然数自身とそれから2^n引いた自然数が生成される
 -- このことからn回の試行でYは2^nでありn = 2^nまで計算できる
 
--- 4 computing the summation v2
+-- 4. computing the summation v2
 open NAT .
   op cond : Bool Nat Nat -> Nat .
   op sum : Nat Nat -> Nat .
@@ -98,7 +98,19 @@ open NAT .
   red oedc-sum(100) .
 close
 
--- factorial ! bang operator
+-- 5. ext-fib
+open NAT .
+  op ext-fib : Nat -> Nat .
+  vars X : Nat .
+  eq ext-fib(0) = 0 .
+  eq ext-fib(1) = 1 .
+  eq ext-fib(2) = 2 .
+  eq ext-fib(X) = ext-fib(p X) + ext-fib(p (p X)) + ext-fib(p (p (p X))) .
+  red ext-fib(0) .
+  red ext-fib(5) .
+close
+
+-- 6. factorial ! bang operator
 open NAT .
   op _! : Nat -> Nat .
   var NzX : NzNat .
@@ -108,7 +120,7 @@ open NAT .
   red 10 ! .
 close
 
--- odd-even divide and conquer factoriial
+-- 7. odd-even divide and conquer factorial
 open NAT .
   op if_then {_} else {_} : Bool Nat Nat -> Nat .
   op g : Nat Nat -> Nat .
