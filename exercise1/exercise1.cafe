@@ -37,7 +37,6 @@ open NAT .
   eq oedc-fact(NzX) = g(NzX,1) .
   red oedc-fact(0) .
   red oedc-fact(10) .
-  red sd(10,2) .
 close
 
 -- fibonacci
@@ -98,3 +97,30 @@ open NAT .
   red oedc-sum(10) .
   red oedc-sum(100) .
 close
+
+-- factorial ! bang operator
+open NAT .
+  op _! : Nat -> Nat .
+  var NzX : NzNat .
+  eq 0 ! = 1 .
+  eq NzX ! = NzX * (p NzX !) .
+  red 0 ! .
+  red 10 ! .
+close
+
+-- odd-even divide and conquer factoriial
+open NAT .
+  op if_then {_} else {_} : Bool Nat Nat -> Nat .
+  op g : Nat Nat -> Nat .
+  op _! : Nat -> Nat .
+  vars X Y : Nat .
+  var NzX : NzNat .
+  eq if true then {X} else {Y} = X .
+  eq if false then {X} else {Y} = Y .
+  eq g(X,Y) = if (X > Y) then {g(X,2 * Y) * g(sd(X,Y),2 * Y)} else {X} .
+  eq 0 ! = 1 .
+  eq NzX ! = g(NzX,1) .
+  red 0 ! .
+  red 10 ! .
+close
+
