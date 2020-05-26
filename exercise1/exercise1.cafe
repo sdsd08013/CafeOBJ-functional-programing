@@ -21,6 +21,7 @@ open NAT .
   red fact(0) .
   red fact(1) .
   red fact(10) .
+  red fact(100) .
 close
 
 -- odd-even divide and conquer factorial
@@ -37,6 +38,8 @@ open NAT .
   eq oedc-fact(NzX) = g(NzX,1) .
   red oedc-fact(0) .
   red oedc-fact(10) .
+  red oedc-fact(100) .
+  red oedc-fact(10000) .
 close
 
 -- fibonacci
@@ -48,6 +51,8 @@ open NAT .
   eq fib(NzX) = sfib(p NzX) .
   eq sfib(0) = 1 .
   eq sfib(NzX) = fib(NzX) + fib(p NzX) .
+  red fib(0) .
+  red fib(1) .
   red fib(10) .
   red fib(20) .
 close
@@ -75,12 +80,6 @@ open NAT .
   red sum(100) .
 close
 
--- n,1について
--- 1回試行するとn,n-1 2
--- 2回試行するとn,n-1,n-2,n-3 4
--- つまりn回目の試行ではn-1回目の試行で生成した自然数自身とそれから2^n引いた自然数が生成される
--- このことからn回の試行でYは2^nでありn = 2^nまで計算できる
-
 -- 4. computing the summation v2
 open NAT .
   op cond : Bool Nat Nat -> Nat .
@@ -107,7 +106,9 @@ open NAT .
   eq ext-fib(2) = 2 .
   eq ext-fib(X) = ext-fib(p X) + ext-fib(p (p X)) + ext-fib(p (p (p X))) .
   red ext-fib(0) .
-  red ext-fib(5) .
+  red ext-fib(1) .
+  red ext-fib(10) .
+  red ext-fib(20) .
 close
 
 -- 6. factorial ! bang operator
@@ -117,7 +118,9 @@ open NAT .
   eq 0 ! = 1 .
   eq NzX ! = NzX * (p NzX !) .
   red 0 ! .
+  red 1 ! .
   red 10 ! .
+  red 100 ! .
 close
 
 -- 7. odd-even divide and conquer factorial
@@ -133,6 +136,8 @@ open NAT .
   eq 0 ! = 1 .
   eq NzX ! = g(NzX,1) .
   red 0 ! .
+  red 1 ! .
   red 10 ! .
+  red 100 ! .
 close
 

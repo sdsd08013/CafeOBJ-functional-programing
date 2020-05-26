@@ -1,0 +1,93 @@
+-- gcd
+mod! GCD {
+  pr(NAT)
+  op gcd : Nat Zero -> Zero .
+  op gcd : Nat NzNat -> NzNat .
+  op gcd : Nat Nat -> Nat .
+  var X : Nat .
+  var NzY : NzNat .
+  eq gcd(X,0) = X .
+  eq gcd(X,NzY) = gcd(NzY,X rem NzY) .
+}
+
+open GCD .
+  red gcd(24,36) .
+  red gcd(2015,31031) .
+close
+
+mod! LCM {
+  pr(GCD)
+  op lcm : Nat Zero -> Zero .
+  op lcm : Nat NzNat -> Nat .
+  op lcm : Nat Nat -> Nat .
+  var X : Nat .
+  var NzY : NzNat .
+  eq lcm(X,0) = 0 .
+  eq lcm(X,NzY) = (X quo gcd(X,NzY)) * NzY .
+}
+
+open LCM .
+  red lcm(24,36) .
+  red lcm(2015,31031) .
+close
+
+mod! NAT-ERR {
+  pr(NAT)
+  [Nat ErrNat < Nat&Err]
+  op errNat : -> ErrNat {constr} .
+  op p_ : Zero -> ErrNat . -- 負になる減算
+  op p_ : ErrNat -> ErrNat .
+  op p_ : Nat&Err -> Nat&Err .
+  op _quo_ : Nat&Err Zero -> ErrNat . -- 0による除算
+  op _quo_ : Nat&Err ErrNat -> ErrNat .
+  op _quo_ : ErrNat Nat&Err -> ErrNat .
+  op _quo_ : Nat&Err Nat&Err -> Nat&Err .
+  var NE : Nat&Err .
+  eq p 0 = errNat .
+  eq p errNat = errNat .
+  eq NE quo 0 = errNat .
+  eq NE quo errNat = errNat .
+  eq errNat quo NE = errNat .
+}
+
+open NAT-ERR .
+  red p 1 .
+  red p 0 .
+  red p errNat .
+  red 10 quo 3 .
+  red 10 quo 0 .
+  red 10 quo errNat .
+  red errNat quo 3 .
+  red errNat quo errNat .
+close
+
+mod! NATLIST {
+  pr(NAT-ERR)
+  [Nil NnNatList < NatList]
+  var X : Nat .
+  var Y : Nat .
+  var Z : Nat .
+  var L : NatList .
+  var L2 : NatList .
+  op nil : -> Nil {constr} .
+  op _|_ : Nat NatList -> NnNatList {constr} . 
+  op hd : Nil -> ErrNat . -- head
+  op hd : NnNatList -> Nat .
+  op hd : NatList -> Nat&Err .
+  op tl : NatList -> NatList . -- tail
+  op _@_ : NatList NatList -> NatList . -- concat
+  op [_.._] : Nat Nat -> NatList . -- range
+  op if_then {_} else {_} : Bool NatList NatList -> NatList .
+
+  eq hd(nil) = errNat .
+  eq hd(X | L) = X .
+  eq tl(nil) = nil .
+  eq tl(X | L) = L .
+  eq nil @ L2 = L2 .
+  eq (X | L) @ L2 = X | (L @ L2) .
+  eq [X .. Y] = if X > Y then {nil} else {X | [X + 1 .. Y]} .
+  eq if true then {L} else {L2} = L .
+  eq if false then {L} else {L2} = L2 .
+}
+
+-- 4. http://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=0162
