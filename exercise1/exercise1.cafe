@@ -102,12 +102,12 @@ open NAT .
   op sfib : Nat -> Nat .
   op tfib : Nat -> Nat .
   vars X : NzNat .
-  eq ext-fib(0) = 0 .
-  eq ext-fib(X) = sfib(p X) .
-  eq sfib(0) = 1 .
-  eq sfib(X) = tfib(p X) .
+  eq tfib(X) = ext-fib(X + 1) + ext-fib(X) + ext-fib(p X) .
   eq tfib(0) = 2 .
-  eq tfib(X) = ext-fib(X + 1) + ext-fib(X) + ext-fib(X - 1) .
+  eq sfib(X) = tfib(p X) .
+  eq sfib(0) = 1 .
+  eq ext-fib(X) = sfib(p X) .
+  eq ext-fib(0) = 0 .
   red ext-fib(0) .
   red ext-fib(1) .
   red ext-fib(2) .
