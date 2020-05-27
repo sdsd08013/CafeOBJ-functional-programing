@@ -39,7 +39,6 @@ open NAT .
   red oedc-fact(0) .
   red oedc-fact(10) .
   red oedc-fact(100) .
-  red oedc-fact(10000) .
 close
 
 -- fibonacci
@@ -100,13 +99,21 @@ close
 -- 5. ext-fib
 open NAT .
   op ext-fib : Nat -> Nat .
-  vars X : Nat .
+  op sfib : Nat -> Nat .
+  op tfib : Nat -> Nat .
+  vars X : NzNat .
   eq ext-fib(0) = 0 .
-  eq ext-fib(1) = 1 .
-  eq ext-fib(2) = 2 .
-  eq ext-fib(X) = ext-fib(p X) + ext-fib(p (p X)) + ext-fib(p (p (p X))) .
+  eq ext-fib(X) = sfib(p X) .
+  eq sfib(0) = 1 .
+  eq sfib(X) = tfib(p X) .
+  eq tfib(0) = 2 .
+  eq tfib(X) = ext-fib(X + 1) + ext-fib(X) + ext-fib(X - 1) .
   red ext-fib(0) .
   red ext-fib(1) .
+  red ext-fib(2) .
+  red ext-fib(3) .
+  red ext-fib(4) .
+  red ext-fib(5) .
   red ext-fib(10) .
   red ext-fib(20) .
 close
