@@ -1,0 +1,225 @@
+-- gcd
+mod! GCD {
+  pr(NAT)
+  op gcd : Nat Zero -> Zero .
+  op gcd : Nat NzNat -> NzNat .
+  op gcd : Nat Nat -> Nat .
+  var X : Nat .
+  var NzY : NzNat .
+  eq gcd(X,0) = X .
+  eq gcd(X,NzY) = gcd(NzY,X rem NzY) .
+}
+
+open GCD .
+  red gcd(24,36) .
+  red gcd(2015,31031) .
+close
+
+-- lcm
+mod! LCM {
+  pr(GCD)
+  op lcm : Nat Zero -> Zero .
+  op lcm : Nat NzNat -> Nat .
+  op lcm : Nat Nat -> Nat .
+  var X : Nat .
+  var NzY : NzNat .
+  eq lcm(X,0) = 0 .
+  eq lcm(X,NzY) = (X quo gcd(X,NzY)) * NzY .
+}
+
+open LCM .
+  red lcm(24,36) .
+  red lcm(2015,31031) .
+close
+
+mod! NAT-ERR {
+  pr(NAT)
+  [Nat ErrNat < Nat&Err]
+  op errNat : -> ErrNat {constr} .
+  op p_ : Zero -> ErrNat . -- minus
+  op p_ : ErrNat -> ErrNat .
+  op p_ : Nat&Err -> Nat&Err .
+  op _quo_ : Nat&Err Zero -> ErrNat . -- divide zero
+  op _quo_ : Nat&Err ErrNat -> ErrNat .
+  op _quo_ : ErrNat Nat&Err -> ErrNat .
+  op _quo_ : Nat&Err Nat&Err -> Nat&Err .
+  var NE : Nat&Err .
+  eq p 0 = errNat .
+  eq p errNat = errNat .
+  eq NE quo 0 = errNat .
+  eq NE quo errNat = errNat .
+  eq errNat quo NE = errNat .
+}
+
+open NAT-ERR .
+  red p 1 .
+  red p 0 .
+  red p errNat .
+  red 10 quo 3 .
+  red 10 quo 0 .
+  red 10 quo errNat .
+  red errNat quo 3 .
+  red errNat quo errNat .
+close
+
+mod! NATLIST {
+  pr(NAT-ERR)
+  [Nil NnNatList < NatList]
+  var X : Nat .
+  var Y : Nat .
+  var Z : Nat .
+  var L : NatList .
+  var L2 : NatList .
+  op nil : -> Nil {constr} .
+  op _|_ : Nat NatList -> NnNatList {constr} .  -- push_top
+  op hd : Nil -> ErrNat . -- head
+  op hd : NnNatList -> Nat .
+  op hd : NatList -> Nat&Err .
+  op tl : NatList -> NatList . -- tail
+  op _@_ : NatList NatList -> NatList . -- append
+  op [_.._] : Nat Nat -> NatList . -- range
+  op if_then {_} else {_} : Bool NatList NatList -> NatList .
+
+  eq hd(nil) = errNat .
+  eq hd(X | L) = X .
+  eq tl(nil) = nil .
+  eq tl(X | L) = L .
+  eq[@1] : nil @ L2 = L2 .
+  eq[@2] : (X | L) @ L2 = X | (L @ L2) .
+  eq [X .. Y] = if X > Y then {nil} else {X | [X + 1 .. Y]} .
+  eq if true then {L} else {L2} = L .
+  eq if false then {L} else {L2} = L2 .
+}
+
+-- qsort
+mod! QSORT {
+  pr(NATLIST)
+  op qsort : NatList -> NatList .
+  op partition : Nat NatList NatList NatList -> NatList .
+  vars X Y : Nat .
+  vars L LL RL : NatList .
+  eq qsort(nil) = nil .
+  eq qsort(X | nil) = X | nil .
+  eq qsort(X | Y | L) = partition(X,Y | L,nil,nil) .
+  eq partition(X,nil,LL,RL) = qsort(LL) @ (X | qsort(RL)) .
+  eq partition(X,Y | L,LL,RL) = if Y < X then {partition(X,L,Y | LL,RL)} else {partition(X,L,LL,Y | RL)} .
+}
+
+-- set trace on
+open QSORT .
+  red qsort(4 | 7 | 5 | 1 | 0 | 3 | 6 | 2 | nil) .
+close
+-- set trace off
+
+-- sieve
+mod! ERATOSTHENES {
+  pr(NATLIST)
+  op primesUpto : Nat -> NatList .
+  op sieve : NatList -> NatList .
+  op check : Nat NatList -> NatList .
+  vars X Y : Nat .
+  var NzX : NzNat .
+  var L : NatList .
+  eq primesUpto(X) = sieve([2 .. X]) .
+  eq sieve(nil) = nil .
+  eq sieve(X | L) = X | sieve(check(X,L)) .
+  eq check(0,L) = L .
+  eq check(NzX,nil) = nil .
+  eq check(NzX,Y | L) = if NzX divides Y then {check(NzX,L)} else {Y | check(NzX,L)} .
+}
+
+open ERATOSTHENES .
+  red primesUpto(10) .
+  red primesUpto(20) .
+  red primesUpto(50) .
+  red primesUpto(100) .
+close
+
+-- 2 fact
+mod! FACT {
+  pr(NAT)
+  op fact : Nat -> Nat .
+  var NzX : NzNat .
+  eq fact(0) = 1 .
+  eq fact(NzX) = NzX * fact(p NzX) .
+}
+
+open FACT .
+  red fact(0) .
+  red fact(1) .
+  red fact(10) .
+  red fact(100) .
+close
+
+-- 2 oedc-fact
+mod! OEDC {
+  pr(NAT)
+  op cond : Bool Nat Nat -> Nat .
+  op g : Nat Nat -> Nat .
+  op oedc-fact : Nat -> Nat .
+  vars X Y : Nat .
+  var NzX : NzNat .
+  eq cond(true,X,Y) = X .
+  eq cond(false,X,Y) = Y .
+  eq g(X,Y) = cond(X > Y, g(X,2 * Y) * g(sd(X,Y),2 * Y),X) .
+  eq oedc-fact(0) = 1 .
+  eq oedc-fact(NzX) = g(NzX,1) .
+}
+
+open OEDC .
+  red oedc-fact(0) .
+  red oedc-fact(1) .
+  red oedc-fact(10) .
+  red oedc-fact(100) .
+close
+
+-- 3 merge sort
+mod! MSORT {
+  pr(NATLIST)
+  op msort : NatList -> NatList .
+  op split : NatList NatList NatList -> NatList .
+  op merge : NatList NatList -> NatList .
+  vars X Y : Nat .
+  vars L LL RL : NatList .
+  eq msort(nil) = nil .
+  eq msort(X | nil) = X | nil .
+  eq msort(X | Y | L) = split(L, X | nil, Y | nil) .
+  eq split(nil, LL, RL) = merge(msort(LL),msort(RL)) .
+  eq split(X | nil,LL,RL) = split(nil,X | LL,RL) .
+  eq split(X | Y | L,LL,RL) = split(L,X | LL,Y | RL) .
+  eq merge(nil,RL) = RL .
+  eq merge(X | LL,nil) = X | LL .
+  eq merge(X | LL,Y | RL) = if X > Y then {merge(LL,Y | merge(X | nil,RL))} else {merge(X | merge(Y | nil,LL),RL)} .
+}
+
+open MSORT .
+  red msort(4 | 7 | 5 | 1 | 0 | 3 | 6 | 2 | nil) .
+close
+
+-- 4 hamming numbers
+mod! HAMMING-NUMBERS {
+  pr(NATLIST)
+  op ham : Nat -> NatList .
+  op sham : NatList Nat -> NatList .
+  op merge : NatList NatList -> NatList .
+  op _*_ : Nat NatList -> NatList .
+  vars X Y : Nat .
+  vars L LL RL : NatList .
+  var NzX : NzNat .
+  eq ham(0) = nil .
+  eq ham(NzX) = sham(1 | nil, NzX) .
+  eq sham(X | L, NzX) = if NzX < X then {nil} else {X | sham(merge(merge(L,2 * (X | L)), merge(3 * (X | L),5 * (X | L))),NzX)} .
+  eq 2 * (nil) = nil .
+  eq 2 * (X | L) = 2 * X | 2 * (L) .
+  eq 3 * (nil) = nil .
+  eq 3 * (X | L) = 3 * X | 3 * (L) .
+  eq 5 * (nil) = nil .
+  eq 5 * (X | L) = 5 * X | 5 * (L) .
+  eq merge(nil,RL) = RL .
+  eq merge(X | LL, nil) = X | LL .
+  eq merge(X | LL,Y | RL) = if X == Y then {X | merge(LL,RL)} else { if X < Y then {X | merge(LL,Y | RL)} else {Y | merge(X | LL,RL)}} .
+}
+
+open HAMMING-NUMBERS .
+  red ham(15) .
+close
