@@ -314,9 +314,9 @@ mod! FMUTEX {
   eq trans((locked: B, pc1: cs, pc2: L2),t1) = (locked: false,pc1: rs, pc2: L2) .
 
   eq trans((locked: true, pc1: L1, pc2: rs),t2) = (locked: true,pc1: L1, pc2: rs) .
-  eq trans((locked: false, pc1: L1, pc2: rs),t1) = (locked: false,pc1: L1, pc2: ms) .
-  eq trans((locked: B, pc1: L1, pc2: ms),t1) = (locked: true,pc1: L1, pc2: cs) .
-  eq trans((locked: B, pc1: L1, pc2: cs),t1) = (locked: false,pc1: L1, pc2: rs) .
+  eq trans((locked: false, pc1: L1, pc2: rs),t2) = (locked: false,pc1: L1, pc2: ms) .
+  eq trans((locked: B, pc1: L1, pc2: ms),t2) = (locked: true,pc1: L1, pc2: cs) .
+  eq trans((locked: B, pc1: L1, pc2: cs),t2) = (locked: false,pc1: L1, pc2: rs) .
 }
 
 mod! COMP {
@@ -368,11 +368,16 @@ mod! SIM {
   eq sub-sim(S,T | TIL) = S | sub-sim(trans(S,T), TIL) .
 }
 
-open SIM .
-  red take(sim((locked: false, pc1: rs, pc2: rs),123),1) .
-  -- red take(sim((locked: false, pc1: rs, pc2: rs),1234),10) .
-  -- red take(sim((locked: false, pc1: rs, pc2: rs),12345),10) .
-close
+-- 擬似コードが正しいのか -> 正しくない
+-- FMUTEXのFの意味
+-- 動画1:30部分
+-- set trace on
+-- open SIM .
+--   -- red take(sim((locked: false, pc1: rs, pc2: rs),123),10) .
+--   -- red take(sim((locked: false, pc1: rs, pc2: rs),1234),10) .
+--   -- red take(sim((locked: false, pc1: rs, pc2: rs),12345),10) .
+-- close
+-- set trace off
 
 mod! RSIM {
   pr(FMUTEX)
@@ -403,6 +408,6 @@ mod! RSIM {
 
 open RSIM .
   red sim-check((locked: false,pc1: rs,pc2: rs),123, 10) .
-  -- red sim-check((locked: false,pc1: rs,pc2: rs),1234,10) .
-  -- red sim-check((locked: false,pc1: rs,pc2: rs),12345,10) .
+  red sim-check((locked: false,pc1: rs,pc2: rs),1234,10) .
+  red sim-check((locked: false,pc1: rs,pc2: rs),12345,10) .
 close
