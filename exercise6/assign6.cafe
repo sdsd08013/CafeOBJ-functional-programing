@@ -379,7 +379,6 @@ mod! RSIM {
   pr(COMP)
   pr(SCHED)
   op sim : State Nat -> Comp .
-  op sub-sim : State Sched -> Comp .
   op mutex : State -> Bool .
   op sim-check : State Nat Nat -> FComp .
   op sub-sim-check : State Sched Nat -> FComp .
@@ -393,19 +392,17 @@ mod! RSIM {
   var D : Nat .
   var NzD : NzNat .
   vars F1 F2 : FComp .
-  eq if true then {F1} else {F2} = F2 .
+  eq if true then {F1} else {F2} = F1 .
   eq if false then {F1} else {F2} = F2 .
-  -- 初期状態Sとscheduleを与える
-  eq sim(S,N) = sub-sim(S,sched(N)) .
-  --  Sは状態として確定しscheduleされたthreadを先頭から取り出し遷移をする
-  eq sub-sim(S,T | TIL) = S | sub-sim(trans(S,T), TIL) .
+  -- thread1,2ともにcsにあるという状態がないことをcheckする
   eq mutex((locked: B, pc1: L1, pc2: L2)) = not (L1 == cs and L2 == cs) .
+  eq sim-check(S,N,D) = sub-sim-check(S,sched(N),D) .
   eq sub-sim-check(S,T | TIL,0) = S | nil .
   eq sub-sim-check(S,T | TIL,NzD) = if mutex(S) then {S | sub-sim-check(trans(S,T),TIL,p NzD)} else {S | nil} .
 }
 
 open RSIM .
-  red sim-check((locked: false,pc1: rs,pc2: rs),123,10) .
+  red sim-check((locked: false,pc1: rs,pc2: rs),123, 10) .
   -- red sim-check((locked: false,pc1: rs,pc2: rs),1234,10) .
   -- red sim-check((locked: false,pc1: rs,pc2: rs),12345,10) .
 close
