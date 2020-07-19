@@ -275,7 +275,7 @@ close
 
 mod! TID {
   [Tid]
-  ops t1 t2 : -> Tid {constr} .
+  ops t1 t2 t3 t4 : -> Tid {constr} .
   op if_then{_}else{_} : Bool Tid Tid -> Tid .
   vars T1 T2 : Tid .
   eq if true then {T1} else {T2} = T1 .
@@ -292,7 +292,7 @@ mod! STATE principal-sort State {
   pr(LOC)
   [State]
   -- thread1とthread2のロケーションとlockedの状態が決まれば次の状態が決まる
-  op (locked:_,pc1:_,pc2:_) : Bool Loc Loc -> State {constr} .
+  op (locked:_,pc1:_,pc2:_,pc3:_,pc4:_) : Bool Loc Loc Loc Loc -> State {constr} .
 }
 
 -- rs remainder section
@@ -303,20 +303,30 @@ mod! FMUTEX {
   pr(STATE)
   pr(TID)
   op trans : State Tid -> State .
-  vars L1 L2 : Loc .
+  vars L1 L2 L3 L4 : Loc .
   var B : Bool .
   -- thread1の定義
   -- lock状態でt1がrs,t2がL2にいたときt1はそのまま
-  eq trans((locked: true, pc1: rs, pc2: L2),t1) = (locked: true,pc1: rs, pc2: L2) .
+  eq trans((locked: true, pc1: rs, pc2: L2, pc3: L3, pc4: L4),t1) = (locked: true,pc1: rs, pc2: L2, pc3: L3, pc4: L4) .
   -- unlock状態でt1がrs,t2がL2にいたときt1がmsに入る
-  eq trans((locked: false, pc1: rs, pc2: L2),t1) = (locked: false,pc1: ms, pc2: L2) .
-  eq trans((locked: B, pc1: ms, pc2: L2),t1) = (locked: true,pc1: cs, pc2: L2) .
-  eq trans((locked: B, pc1: cs, pc2: L2),t1) = (locked: false,pc1: rs, pc2: L2) .
+  eq trans((locked: false, pc1: rs, pc2: L2, pc3: L3, pc4: L4),t1) = (locked: false,pc1: ms, pc2: L2, pc3: L3, pc4: L4) .
+  eq trans((locked: B, pc1: ms, pc2: L2, pc3: L3, pc4: L4),t1) = (locked: true,pc1: cs, pc2: L2, pc3: L3, pc4: L4) .
+  eq trans((locked: B, pc1: cs, pc2: L2, pc3: L3, pc4: L4),t1) = (locked: false,pc1: rs, pc2: L2, pc3: L3, pc4: L4) .
 
-  eq trans((locked: true, pc1: L1, pc2: rs),t2) = (locked: true,pc1: L1, pc2: rs) .
-  eq trans((locked: false, pc1: L1, pc2: rs),t2) = (locked: false,pc1: L1, pc2: ms) .
-  eq trans((locked: B, pc1: L1, pc2: ms),t2) = (locked: true,pc1: L1, pc2: cs) .
-  eq trans((locked: B, pc1: L1, pc2: cs),t2) = (locked: false,pc1: L1, pc2: rs) .
+  eq trans((locked: true, pc1: L1, pc2: rs, pc3: L3, pc4: L4),t2) = (locked: true,pc1: L1, pc2: rs, pc3: L3, pc4: L4) .
+  eq trans((locked: false, pc1: L1, pc2: rs, pc3: L3, pc4: L4),t2) = (locked: false,pc1: L1, pc2: ms, pc3: L3, pc4: L4) .
+  eq trans((locked: B, pc1: L1, pc2: ms, pc3: L3, pc4: L4),t2) = (locked: true,pc1: L1, pc2: cs, pc3: L3, pc4: L4) .
+  eq trans((locked: B, pc1: L1, pc2: cs, pc3: L3, pc4: L4),t2) = (locked: false,pc1: L1, pc2: rs, pc3: L3, pc4: L4) .
+
+  eq trans((locked: true, pc1: L1, pc2: L2, pc3: rs, pc4: L4),t3) = (locked: true,pc1: L1, pc2: L2, pc3: rs, pc4: L4) .
+  eq trans((locked: false, pc1: L1, pc2: L2, pc3: rs, pc4: L4),t3) = (locked: false,pc1: L1, pc2: L2, pc3: ms, pc4: L4) .
+  eq trans((locked: B, pc1: L1, pc2: L2, pc3: ms, pc4: L4),t3) = (locked: true,pc1: L1, pc2: L2, pc3: cs, pc4: L4) .
+  eq trans((locked: B, pc1: L1, pc2: L2, pc3: cs, pc4: L4),t3) = (locked: false,pc1: L1, pc2: L2, pc3: rs, pc4: L4) .
+
+  eq trans((locked: true, pc1: L1, pc2: L2, pc3: L3, pc4: rs),t4) = (locked: true,pc1: L1, pc2: L2, pc3: L3, pc4: rs) .
+  eq trans((locked: false, pc1: L1, pc2: L2, pc3: L3, pc4: rs),t4) = (locked: false,pc1: L1, pc2: L2, pc3: L3, pc4: ms) .
+  eq trans((locked: B, pc1: L1, pc2: L2, pc3: L3, pc4: ms),t4) = (locked: true,pc1: L1, pc2: L2, pc3: L3, pc4: cs) .
+  eq trans((locked: B, pc1: L1, pc2: L2, pc3: L3, pc4: cs),t4) = (locked: false,pc1: L1, pc2: L2, pc3: L3, pc4: rs) .
 }
 
 mod! COMP {
@@ -392,7 +402,7 @@ mod! RSIM {
   var N : Nat .
   var T : Tid .
   var TIL : Sched .
-  vars L1 L2 : Loc .
+  vars L1 L2 L3 L4 : Loc .
   var B : Bool .
   var D : Nat .
   var NzD : NzNat .
@@ -400,14 +410,14 @@ mod! RSIM {
   eq if true then {F1} else {F2} = F1 .
   eq if false then {F1} else {F2} = F2 .
   -- thread1,2ともにcsにあるという状態がないことをcheckする
-  eq mutex((locked: B, pc1: L1, pc2: L2)) = not (L1 == cs and L2 == cs) .
+  eq mutex((locked: B, pc1: L1, pc2: L2, pc3: L3, pc4: L4)) = not (L1 == cs and L2 == cs and L3 == cs and L4 == cs) .
   eq sim-check(S,N,D) = sub-sim-check(S,sched(N),D) .
   eq sub-sim-check(S,T | TIL,0) = S | nil .
   eq sub-sim-check(S,T | TIL,NzD) = if mutex(S) then {S | sub-sim-check(trans(S,T),TIL,p NzD)} else {S | nil} .
 }
 
 open RSIM .
-  red sim-check((locked: false,pc1: rs,pc2: rs),123, 10) .
-  red sim-check((locked: false,pc1: rs,pc2: rs),1234,10) .
-  red sim-check((locked: false,pc1: rs,pc2: rs),12345,10) .
+  red sim-check((locked: false,pc1: rs,pc2: rs, pc3: rs, pc4: rs),123, 10) .
+  -- red sim-check((locked: false,pc1: rs,pc2: rs),1234,10) .
+  -- red sim-check((locked: false,pc1: rs,pc2: rs),12345,10) .
 close
