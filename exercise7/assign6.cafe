@@ -1,0 +1,423 @@
+-- Elt,Errを包含するElt&Errを定義,
+mod* TRIV-ERR {
+  [Elt Err < Elt&Err]
+  op err : -> Err .
+}
+
+mod! NAT-ERR principal-sort Nat {
+  pr(NAT)
+  [Nat ErrNat < Nat&Err]
+  op errNat : -> ErrNat {constr} .
+  op _*_ : Nat&Err Nat&Err -> Nat&Err .
+  op if_then{_}else{_} : Bool Nat&Err Nat&Err -> Nat&Err .
+  vars NE NE1 NE2 : Nat&Err .
+  eq errNat * NE = errNat .
+  eq NE * errNat = errNat .
+  eq if true then {NE1} else {NE2} = NE1 .
+  eq if false then {NE1} else {NE2} = NE2 .
+}
+
+-- err時のListの挙動を定義する
+mod! GLIST-ERR(E :: TRIV-ERR) {
+  [Nil NnList < List]
+  [List ErrList < List&Err]
+  op errList : -> ErrList {constr} .
+  op nil : -> Nil {constr}
+  op _|_ : Elt.E List -> List {constr} .  -- push_top
+  op _|_ : Elt&Err.E List&Err -> List&Err .
+  op hd : Nil -> Err.E .
+  op hd : NnList -> Elt.E .
+  op hd : ErrList -> Err.E .
+  op hd : List&Err -> Elt&Err .
+  op tl : Nil -> ErrList .
+  op tl : NnList -> List .
+  op tl : ErrList -> ErrList .
+  op tl : List&Err -> List&Err .
+  op _@_ : List List -> List .
+  op _@_ : ErrList List&Err -> ErrList .
+  op _@_ : List&Err ErrList -> ErrList .
+  op _@_ : List&Err List&Err -> List&Err .
+  op if_then{_}else{_} : Bool List&Err List&Err -> List&Err .
+  var X : Elt.E .
+  var XE : Elt&Err.E .
+  vars L L2 : List .
+  vars LE LE2 : List&Err .
+  eq err.E | LE = errList .
+  eq XE | errList = errList .
+  eq hd(nil) = err.E .
+  eq hd(X | L) = X .
+  eq hd(errList) = err.E .
+  eq tl(nil) = errList .
+  eq tl(X | L) = L .
+  eq tl(errList) = errList .
+  eq nil @ L2 = L2 .
+  eq (X | L) @ L2 = X | (L @ L2) .
+  eq errList @ LE = errList .
+  eq LE @ errList = errList .
+  eq if true then {LE} else {LE2} = LE .
+  eq if false then {LE} else {LE2} = LE2 .
+}
+
+-- first->FE, second->SEの組のparametarized module
+mod! PAIR(FE :: TRIV, SE :: TRIV) {
+  [Pair]
+  op (_,_) : Elt.FE Elt.SE -> Pair {constr} .
+}
+
+-- if module
+mod* TRIV-ERR-IF {
+  [Elt Err < Elt&Err]
+  op err : -> Err .
+  op if_then{_}else{_} : Bool Elt&Err Elt&Err -> Elt&Err .
+}
+
+-- TRIV,TRIV-ERR-IFをパラメータに持つmodule
+-- PAIRをTRIV,TRIV-ERR-IFで具体化してimportする
+-- PAIRで定義しているsort PairをEntryにrenameする
+mod! ENTRY(K :: TRIV, V :: TRIV-ERR-IF) {
+  pr(PAIR(K,V) * {sort Pair -> Entry})
+  [Entry ErrEntry < Entry&Err]
+  op errEntry : -> ErrEntry {constr} .
+  op (_,_) : Elt.K Elt&Err.V -> Entry&Err .
+  var K : Elt.K .
+  eq (K,err.V) = errEntry .
+}
+
+-- errを定義したmodule
+mod! BOOL-ERR {
+  [Bool ErrBool < Bool&Err]
+  op errBool : -> ErrBool {constr} .
+  op if_then{_}else{_} : Bool Bool Bool -> Bool .
+  vars B1 B2 : Bool .
+  eq if true then {B1} else {B2} = B1 .
+  eq if false then {B1} else {B2} = B2 .
+}
+
+-- ifを定義したstring module
+mod! STRING-ERR principal-sort String {
+  pr(STRING)
+  [String ErrString < String&Err]
+  op errStr : -> ErrString {constr} .
+  op if_then{_}else{_} : Bool String&Err String&Err -> String&Err .
+  vars SE1 SE2 : String&Err .
+  eq if true then {SE1} else {SE2} = SE1 .
+  eq if false then {SE1} else {SE2} = SE2 .
+}
+
+-- EltにQidを割り当てるview
+view TRIV2QID from TRIV to QID {
+  sort Elt -> Qid
+}
+
+-- EltにStringを割り当てるview
+view TRIV-ERR-IF2STRING-ERR from TRIV-ERR-IF to STRING-ERR {
+  sort Elt -> String,
+  sort Err -> ErrString,
+  sort Elt&Err -> String&Err,
+  op err -> errStr,
+  op (if_then{_}else{_}) -> (if_then{_}else{_}),
+}
+
+-- 3つの要素を持つtriple module
+mod! TRIPLE(FE :: TRIV, SE :: TRIV, TE :: TRIV) {
+  [Triple]
+  op (_,_,_) : Elt.FE Elt.SE Elt.TE -> Triple {constr} .
+}
+
+-- TRIPLEの先頭を取得するmod
+-- strategy(1 0)はleft-most inner-most strategy
+-- 
+mod! NAT-TRIPLE-IMLM {
+  pr(NAT)
+  [NatTriple]
+  op (_,_,_) : Nat Nat Nat -> NatTriple {constr}
+  op 1st : NatTriple -> Nat {strat: (1 0)}
+  vars FE SE TE : Nat .
+  eq 1st((FE,SE,TE)) = FE .
+}
+
+set trace on
+open NAT-TRIPLE-IMLM .
+  red 1st((1 + 1,2 + 2,3 + 3)) .
+close
+set trace off
+
+-- 無限リストの場合最内戦略だと処理が終わらない場合がある
+-- E-strategyは引数の評価順
+-- (_,_,_) => strat: (1 0) 1stの引数をまず評価その後全体を評価 => 最内戦略
+
+-- TRIPLEの先頭を取得するmod
+-- strategy(0 1 0)はleft-most outer-most strategy
+-- 
+mod! NAT-TRIPLE-OMLM {
+  pr(NAT)
+  [NatTriple]
+  op (_,_,_) : Nat Nat Nat -> NatTriple {constr}
+  op 1st : NatTriple -> Nat {strat: (0 1 0)}
+  vars FE SE TE : Nat .
+  eq 1st((FE,SE,TE)) = FE .
+}
+
+open NAT-TRIPLE-OMLM .
+  red 1st((1 + 1,2 + 2,3 + 3)) .
+close
+
+mod! NAT-IF { pr(NAT)
+  op if_then{_}else{_} : Bool Nat Nat -> Nat .
+  vars N1 N2 : Nat .
+  eq if true then {N1} else {N2} = N1 .
+  eq if false then {N1} else {N2} = N2 . 
+}
+
+show NAT-IF .
+
+-- parameterized list
+mod! GLIST(E :: TRIV) {
+  [Nil NnList < List]
+  op nil : -> Nil {constr} .
+  op _|_ : Elt.E List -> List {constr} .
+}
+
+-- 無限list
+mod* INF-LIST(E :: TRIV) {
+  [InfList]
+  pr(NAT)
+  pr(GLIST(E))
+  op _|_ : Elt.E InfList -> InfList {strat: (1 0)} . -- 1つ目の引数Elt.Eを先に評価
+  vars X Y : Elt.E .
+  vars IL IL2 : InfList .
+  var NzN : NzNat .
+  var N : Nat .
+  var L : List .
+  op take : InfList Nat -> List .
+  eq take(IL,0) = nil .
+  eq take(X | IL, NzN) = X | take(IL,p NzN) .
+  op drop : InfList Nat -> InfList .
+  eq drop(IL,0) = IL .
+  eq drop(X | IL, NzN) = drop(IL,p NzN) .
+  op _@_ : List InfList -> InfList .
+  eq nil @ IL = IL .
+  eq (X | L) @ IL = X | (L @ IL) .
+  op zip : InfList InfList -> InfList .
+  eq zip(X | IL,Y | IL2) = X | Y | zip(IL,IL2) .
+}
+
+-- 
+mod! NAT-INF-LIST {
+  pr(INF-LIST(NAT)) .
+  op mkNILFrom : Nat -> InfList .
+  op if_then{_}else{_} : Bool InfList InfList -> InfList .
+  var N : Nat .
+  vars IL1 IL2 : InfList .
+  eq mkNILFrom(N) = N | mkNILFrom(N + 1) .
+  eq if true then {IL1} else {IL2} = IL1 .
+  eq if false then {IL1} else {IL2} = IL2 .
+}
+
+open NAT-INF-LIST .
+  red mkNILFrom(0) .
+  red take(mkNILFrom(0),10) .
+  red drop(mkNILFrom(0),10) .
+  red take(drop(mkNILFrom(0),997),10) .
+  red take(take(mkNILFrom(0),10) @ drop(mkNILFrom(0),10),20) .
+  red take(mkNILFrom(0),20) .
+  red zip(mkNILFrom(0),mkNILFrom(0)) .
+  red take(drop(zip(mkNILFrom(0),mkNILFrom(0)),997),10) .
+close
+
+-- sieve
+mod! ERATOSTHENES-SIEVE {
+  pr(NAT-INF-LIST)
+  op primes : -> InfList .
+  op sieve : InfList -> InfList .
+  op check : Nat InfList -> InfList .
+  vars X Y : Nat .
+  var NzX : NzNat .
+  var IL : InfList .
+  eq primes = sieve(mkNILFrom(2)) .
+  eq sieve(X | IL) = X | sieve(check(X,IL)) .
+  eq check(0,IL) = IL .
+  eq check(NzX,Y | IL) = IL .
+  eq check(NzX,Y | IL) = if NzX divides Y then {check(NzX,IL)} else {Y | check(NzX,IL)} .
+}
+
+open ERATOSTHENES-SIEVE .
+  red primes .
+  red take(primes,10) .
+  -- red take(primes,20) .
+  -- red take(primes,50) .
+  -- red take(primes,100) .
+close
+
+mod! HAMMING {
+  pr(NAT-INF-LIST)
+  op ham : -> InfList .
+  op 2* : InfList -> InfList .
+  op 3* : InfList -> InfList .
+  op 5* : InfList -> InfList .
+  op merge : InfList InfList -> InfList .
+  vars X Y : Nat .
+  vars IL IL2 : InfList .
+  eq ham = 1 | merge(merge(2*(ham),3*(ham)),5*(ham)) .
+  eq 2*(X | IL) = 2 * X | 2*(IL) .
+  eq 3*(X | IL) = 3 * X | 3*(IL) .
+  eq 5*(X | IL) = 5 * X | 5*(IL) .
+  eq merge(X | IL, Y | IL2) = if X < Y then {X | merge(IL,Y | IL2)} else {if Y < X then {Y | merge(X | IL,IL2)} else {X | merge(IL,IL2)}} .
+}
+
+open HAMMING .
+  red ham .
+  red take(ham,10) .
+  -- red take(ham,20) .
+  -- red take(ham,50) .
+  -- red take(ham,100) .
+close
+
+mod! TID {
+  [Tid]
+  ops t1 t2 t3 t4 : -> Tid {constr} .
+  op if_then{_}else{_} : Bool Tid Tid -> Tid .
+  vars T1 T2 : Tid .
+  eq if true then {T1} else {T2} = T1 .
+  eq if false then {T1} else {T2} = T2 .
+}
+
+-- threadがいる場所(location)を表す rm ms cs
+mod! LOC {
+  [Loc]
+  ops rs ms cs : -> Loc {constr} .
+}
+
+mod! STATE principal-sort State {
+  pr(LOC)
+  [State]
+  -- thread1とthread2のロケーションとlockedの状態が決まれば次の状態が決まる
+  op (locked:_,pc1:_,pc2:_,pc3:_,pc4:_) : Bool Loc Loc Loc Loc -> State {constr} .
+}
+
+-- rs remainder section
+-- ms ?
+-- cs critical section
+-- 状態遷移の定義
+mod! FMUTEX {
+  pr(STATE)
+  pr(TID)
+  op trans : State Tid -> State .
+  vars L1 L2 L3 L4 : Loc .
+  var B : Bool .
+  -- thread1の定義
+  -- lock状態でt1がrs,t2がL2にいたときt1はそのまま
+  eq trans((locked: true, pc1: rs, pc2: L2, pc3: L3, pc4: L4),t1) = (locked: true,pc1: rs, pc2: L2, pc3: L3, pc4: L4) .
+  -- unlock状態でt1がrs,t2がL2にいたときt1がmsに入る
+  eq trans((locked: false, pc1: rs, pc2: L2, pc3: L3, pc4: L4),t1) = (locked: false,pc1: ms, pc2: L2, pc3: L3, pc4: L4) .
+  eq trans((locked: B, pc1: ms, pc2: L2, pc3: L3, pc4: L4),t1) = (locked: true,pc1: cs, pc2: L2, pc3: L3, pc4: L4) .
+  eq trans((locked: B, pc1: cs, pc2: L2, pc3: L3, pc4: L4),t1) = (locked: false,pc1: rs, pc2: L2, pc3: L3, pc4: L4) .
+
+  eq trans((locked: true, pc1: L1, pc2: rs, pc3: L3, pc4: L4),t2) = (locked: true,pc1: L1, pc2: rs, pc3: L3, pc4: L4) .
+  eq trans((locked: false, pc1: L1, pc2: rs, pc3: L3, pc4: L4),t2) = (locked: false,pc1: L1, pc2: ms, pc3: L3, pc4: L4) .
+  eq trans((locked: B, pc1: L1, pc2: ms, pc3: L3, pc4: L4),t2) = (locked: true,pc1: L1, pc2: cs, pc3: L3, pc4: L4) .
+  eq trans((locked: B, pc1: L1, pc2: cs, pc3: L3, pc4: L4),t2) = (locked: false,pc1: L1, pc2: rs, pc3: L3, pc4: L4) .
+
+  eq trans((locked: true, pc1: L1, pc2: L2, pc3: rs, pc4: L4),t3) = (locked: true,pc1: L1, pc2: L2, pc3: rs, pc4: L4) .
+  eq trans((locked: false, pc1: L1, pc2: L2, pc3: rs, pc4: L4),t3) = (locked: false,pc1: L1, pc2: L2, pc3: ms, pc4: L4) .
+  eq trans((locked: B, pc1: L1, pc2: L2, pc3: ms, pc4: L4),t3) = (locked: true,pc1: L1, pc2: L2, pc3: cs, pc4: L4) .
+  eq trans((locked: B, pc1: L1, pc2: L2, pc3: cs, pc4: L4),t3) = (locked: false,pc1: L1, pc2: L2, pc3: rs, pc4: L4) .
+
+  eq trans((locked: true, pc1: L1, pc2: L2, pc3: L3, pc4: rs),t4) = (locked: true,pc1: L1, pc2: L2, pc3: L3, pc4: rs) .
+  eq trans((locked: false, pc1: L1, pc2: L2, pc3: L3, pc4: rs),t4) = (locked: false,pc1: L1, pc2: L2, pc3: L3, pc4: ms) .
+  eq trans((locked: B, pc1: L1, pc2: L2, pc3: L3, pc4: ms),t4) = (locked: true,pc1: L1, pc2: L2, pc3: L3, pc4: cs) .
+  eq trans((locked: B, pc1: L1, pc2: L2, pc3: L3, pc4: cs),t4) = (locked: false,pc1: L1, pc2: L2, pc3: L3, pc4: rs) .
+}
+
+mod! COMP {
+  pr(INF-LIST(STATE)
+    * {
+      sort InfList -> Comp,
+      sort List -> FComp
+    }
+  )
+}
+
+mod! SCHED {
+  pr(NAT)
+  pr(INF-LIST(TID)
+    * {
+      sort InfList -> Sched
+    }
+  )
+  op sched : Nat -> Sched .
+  op if_then{_}else{_} : Bool Sched Sched -> Sched .
+  var N : Nat .
+  vars S1 S2 : Sched .
+  -- 非乱数 擬似的にt1,t2をばらけさせたリストを作る
+  eq if true then {S1} else {S2} = S1 .
+  eq if false then {S1} else {S2} = S2 .
+  eq sched(N) = if 2 divides N then {t1 | sched(N quo 2)} else {t2 | sched(N quo 2)} .
+}
+
+open SCHED .
+  red take(sched(123), 10) .
+  red take(sched(1234), 10) .
+  red take(sched(12345), 10) .
+close
+
+mod! SIM {
+  pr(FMUTEX)
+  pr(COMP)
+  pr(SCHED)
+  op sim : State Nat -> Comp .
+  op sub-sim : State Sched -> Comp .
+  var S : State .
+  var N : Nat .
+  var NzD : NzNat .
+  var T : Tid .
+  var TIL : Sched .
+  -- 初期状態Sとscheduleを与える
+  eq sim(S,N) = sub-sim(S,sched(N)) .
+  --  Sは状態として確定しscheduleされたthreadを先頭から取り出し遷移をする
+  eq sub-sim(S,T | TIL) = S | sub-sim(trans(S,T), TIL) .
+}
+
+-- 擬似コードが正しいのか -> 正しくない
+-- FMUTEXのFの意味
+-- 動画1:30部分
+-- set trace on
+-- open SIM .
+--   -- red take(sim((locked: false, pc1: rs, pc2: rs),123),10) .
+--   -- red take(sim((locked: false, pc1: rs, pc2: rs),1234),10) .
+--   -- red take(sim((locked: false, pc1: rs, pc2: rs),12345),10) .
+-- close
+-- set trace off
+
+mod! RSIM {
+  pr(FMUTEX)
+  pr(COMP)
+  pr(SCHED)
+  op sim : State Nat -> Comp .
+  op mutex : State -> Bool .
+  op sim-check : State Nat Nat -> FComp .
+  op sub-sim-check : State Sched Nat -> FComp .
+  op if_then{_}else{_} : Bool FComp FComp -> FComp .
+  var S : State .
+  var N : Nat .
+  var T : Tid .
+  var TIL : Sched .
+  vars L1 L2 L3 L4 : Loc .
+  var B : Bool .
+  var D : Nat .
+  var NzD : NzNat .
+  vars F1 F2 : FComp .
+  eq if true then {F1} else {F2} = F1 .
+  eq if false then {F1} else {F2} = F2 .
+  -- thread1,2ともにcsにあるという状態がないことをcheckする
+  eq mutex((locked: B, pc1: L1, pc2: L2, pc3: L3, pc4: L4)) = not (L1 == cs and L2 == cs and L3 == cs and L4 == cs) .
+  eq sim-check(S,N,D) = sub-sim-check(S,sched(N),D) .
+  eq sub-sim-check(S,T | TIL,0) = S | nil .
+  eq sub-sim-check(S,T | TIL,NzD) = if mutex(S) then {S | sub-sim-check(trans(S,T),TIL,p NzD)} else {S | nil} .
+}
+
+open RSIM .
+  red sim-check((locked: false,pc1: rs,pc2: rs, pc3: rs, pc4: rs),123, 10) .
+  -- red sim-check((locked: false,pc1: rs,pc2: rs),1234,10) .
+  -- red sim-check((locked: false,pc1: rs,pc2: rs),12345,10) .
+close
