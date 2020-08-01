@@ -76,7 +76,9 @@ mod* INF-LIST(E :: TRIV) {
   op _|_ : Elt.E InfList -> InfList {strat: (1 0)} .
   op take : InfList Nat -> List .
   op if_then{_}else{_} : Bool InfList InfList -> InfList .
-  var X : Elt.E . vars IL IL2 : InfList . var NzN : NzNat .
+  var X : Elt.E . 
+  vars IL IL2 : InfList . 
+  var NzN : NzNat .
   -- take
   eq take(IL,0) = nil .
   eq take(X | IL, NzN) = X | take(IL,p NzN) .
@@ -133,8 +135,8 @@ mod! TEST {
 
 -- 同様のmsetに対してupdateをしているが結果が異なる
 open TEST .
-  red update(('a,1) ('b,2) ('c,3),'a,99) .
-  red update(('a,3) ('b,2) ('c,1),'a,99) .
+  red update(('a,1) ('b,2) ('a,3),'a,99) .
+  red update(('a,3) ('b,2) ('a,1),'a,99) .
 close
 
 mod! BOOL-IF {
@@ -191,7 +193,7 @@ close
 -- 状態の表現の仕方のpro,conをそれぞれ書く
 mod! TID {
   [Tid]
-  ops t1 t2 t3 t4 : -> Tid {constr} .
+  ops t1 t2 : -> Tid {constr} .
   op if_then{_}else{_} : Bool Tid Tid -> Tid .
   vars T1 T2 : Tid .
   eq if true then {T1} else {T2} = T1 .
@@ -415,7 +417,7 @@ mod! F-SCHED {
   )
   op sched : Nat -> Sched .
   var N : Nat .
-  eq sched(N) = if 2 divides N then {t1 | sched(N quo 2)} else {t2 | sched(N quo 2)} .
+  eq sched(N) = if 2 divides N then {if 3 divides N then {t1 | sched(N quo 2)} else {t2 | sched(N quo 2)}} else {if 5 divides N then {t3 | sched(N quo 2)} else {t4 | sched(N quo 2)}} .
 }
 
 
