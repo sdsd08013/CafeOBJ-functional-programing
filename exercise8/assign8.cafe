@@ -272,7 +272,7 @@ mod! INTERPRET {
   eq eval(if E {S1} else {S2},EV) = evalIf(evalExp(E,EV),S1,S2,EV) .
   -- eq eval(while E {S1},EV) = evalWhile(evalExp(E,EV),E,S1,EV) .
   eq eval(while E {S1},EV) = evalWhile2(evalExp(E,EV),E,S1,EV) .
-  eq eval(for V E1 E2 {S1},EV) = eval(while V < E2 {S1 V := V + n(1) ;},eval(V := E1 ;,EV)) .
+  eq eval(for V E1 E2 {S1},EV) = eval(while V < E2 || V === E2 {S1 V := V + n(1) ;},eval(V := E1 ;,EV)) .
   eq eval(S1 S2, EV) = eval(S2, eval(S1,EV)) .
   -- evalAssign
   -- 等式を3つ定義する
@@ -320,10 +320,14 @@ mod! INTERPRET {
 
   eq evalExp(E1 + E2,EV) = evalExp(E1,EV) + evalExp(E2,EV) .
   eq evalExp(E1 - E2,EV) = sd(evalExp(E1,EV),evalExp(E2,EV)) .
+  eq evalExp(E1 % E2,EV) = evalExp(E1,EV) rem evalExp(E2,EV) .
+  eq evalExp(E1 / E2,EV) = evalExp(E1,EV) quo evalExp(E2,EV) .
   eq evalExp(E1 && E2,EV) = if evalExp(E1,EV) == errNat or evalExp(E2,EV) == errNat then {errNat} else {if evalExp(E1,EV) == 0 or evalExp(E2,EV) == 0 then {0} else {1}} .
   eq evalExp(E1 || E2,EV) = if evalExp(E1,EV) == errNat or evalExp(E2,EV) == errNat then {errNat} else {if (not evalExp(E1,EV) == 1) and (not evalExp(E2,EV) == 1) then {0} else {1}} .
   eq evalExp(E1 * E2,EV) = evalExp(E1,EV) * evalExp(E2,EV) .
   eq evalExp(E1 < E2,EV) = if evalExp(E1,EV) < evalExp(E2,EV) then {1} else {0} .
+  eq evalExp(E1 > E2,EV) = if evalExp(E1,EV) > evalExp(E2,EV) then {1} else {0} .
+  eq evalExp(E1 =!= E2,EV) = if evalExp(E1,EV) == evalExp(E2,EV) then {0} else {1} .
 
   -- for文のhint
   -- eq eval(S1,EV) = eval(S2,EV) .
@@ -362,32 +366,32 @@ open INTERPRET .
           } .
   red interpret(p2) .
 
-  -- op p3 : -> Stm .
-  -- eq p3 = x := n(24) ;
-  --         y := n(30) ;
-  --         while y =!= n(0) {
-  --           z := x % y ;
-  --           x := y ;
-  --           y := z ;
-  --         } .
-  -- red interpret(p3) .
+  op p3 : -> Stm .
+  eq p3 = x := n(24) ;
+          y := n(30) ;
+          while y =!= n(0) {
+            z := x % y ;
+            x := y ;
+            y := z ;
+          } .
+  red interpret(p3) .
 
-  -- op p4 : -> Stm .
-  -- eq p4 = x := n(20000000000000000) ;
-  --         y := n(0) ;
-  --         z := x ;
-  --         while y =!= z {
-  --           if ((z - y) % n(2)) === n(0) {
-  --             tmp := y + (z - y) / n(2) ;
-  --           } else {
-  --             tmp := y + ((z - y) / n(2)) + n(1) ;
-  --           }
-  --           if tmp * tmp > x {
-  --             z := tmp - n(1) ;
-  --           } else {
-  --             y := tmp ;
-  --           }
-  --         } .
-  -- red interpret(p4) .
+  op p4 : -> Stm .
+  eq p4 = x := n(20000000000000000) ;
+          y := n(0) ;
+          z := x ;
+          while y =!= z {
+            if ((z - y) % n(2)) === n(0) {
+              tmp := y + (z - y) / n(2) ;
+            } else {
+              tmp := y + ((z - y) / n(2)) + n(1) ;
+            }
+            if tmp * tmp > x {
+              z := tmp - n(1) ;
+            } else {
+              y := tmp ;
+            }
+          } .
+  red interpret(p4) .
 close
 set trace off
