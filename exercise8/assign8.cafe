@@ -316,7 +316,7 @@ mod! INTERPRET {
   eq evalExp(E1 % E2,EV) = evalExp(E1,EV) rem evalExp(E2,EV) .
   eq evalExp(E1 / E2,EV) = evalExp(E1,EV) quo evalExp(E2,EV) .
   eq evalExp(E1 && E2,EV) = if evalExp(E1,EV) == errNat or evalExp(E2,EV) == errNat then {errNat} else {if evalExp(E1,EV) == 0 or evalExp(E2,EV) == 0 then {0} else {1}} .
-  eq evalExp(E1 || E2,EV) = if evalExp(E1,EV) == errNat or evalExp(E2,EV) == errNat then {errNat} else {if (not evalExp(E1,EV) == 1) and (not evalExp(E2,EV) == 1) then {0} else {1}} .
+  eq evalExp(E1 || E2,EV) = if evalExp(E1,EV) == errNat or evalExp(E2,EV) == errNat then {errNat} else {if evalExp(E1,EV) == 1 or evalExp(E2,EV) == 1 then {1} else {0}} .
   eq evalExp(E1 * E2,EV) = evalExp(E1,EV) * evalExp(E2,EV) .
   eq evalExp(E1 < E2,EV) = if evalExp(E1,EV) < evalExp(E2,EV) then {1} else {0} .
   eq evalExp(E1 > E2,EV) = if evalExp(E1,EV) > evalExp(E2,EV) then {1} else {0} .
@@ -326,29 +326,19 @@ mod! INTERPRET {
 
 -- eof
 
-set trace on
 open INTERPRET .
   ops x y z tmp : -> Var .
   
-  -- op p0 : -> Stm .
-  -- eq p0 = x := n(1) ;
-  --         y := n(2) ;
-  --         while y < n(10) || y === n(10) {
-  --            x := x * y ;
-  --         } .
-  -- red interpret(p0) .
-
-  -- op p1 : -> Stm .
-  -- -- 自然数は式 0ならn(0)
-  -- -- :=+;で代入文
-  -- eq p1 = x := n(1) ;
-  --         y := n(1) ;
-  --         while y < n(10) || y === n(10) {
-  --           x := x * y ;
-  --           y := y + n(1) ;
-  --         } .
-  -- red interpret(p1) .
-
+  op p1 : -> Stm .
+  -- 自然数は式 0ならn(0)
+  -- :=+;で代入文
+  eq p1 = x := n(1) ;
+          y := n(1) ;
+          while y < n(10) || y === n(10) {
+            x := x * y ;
+            y := y + n(1) ;
+          } .
+  red interpret(p1) .
 
   op p2 : -> Stm .
   eq p2 = x := n(1) ;
@@ -384,5 +374,23 @@ open INTERPRET .
             }
           } .
   red interpret(p4) .
+
+  op p5 : -> Stm .
+  eq p5 = x := n(1) ;
+          for y n(1) n(1) {
+            x := x * y ;
+          } .
+  red interpret(p5) .
+
+  op p6 : -> Stm .
+  eq p6 = x := n(1) ;
+          y := n(1) ;
+          while y < n(1) || y === n(1) {
+            x := x * y ;
+            y := y + n(1) ;
+          } .
+  red interpret(p6) .
+
+
+      
 close
-set trace off
