@@ -300,6 +300,10 @@ mod! COMPILE {
   eq genForExp(n(N)) = push(N) | iln .
   eq genForExp(V) = load(V) | iln .
   eq genForExp(E1 + E2) = genForExp(E1) @ genForExp(E2) @ (add | iln) .
+  eq genForExp(E1 - E2) = genForExp(E1) @ genForExp(E2) @ (minus | iln) .
+  eq genForExp(E1 * E2) = genForExp(E1) @ genForExp(E2) @ (multiply | iln) .
+  eq genForExp(E1 / E2) = genForExp(E1) @ genForExp(E2) @ (divide | iln) .
+  eq genForExp(E1 % E2) = genForExp(E1) @ genForExp(E2) @ (mod | iln) .
 }
 
 eof
