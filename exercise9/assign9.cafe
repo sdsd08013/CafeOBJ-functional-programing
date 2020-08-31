@@ -344,7 +344,7 @@ mod! VM {
 
   eq exec2(lessThan,IL,PC,empstk,Env) = errEnv .
   eq exec2(lessThan,IL,PC,N1 | empstk,Env) = errEnv .
-  eq exec2(lessThan,IL,PC,N1 | N2 | Stk,Env) = if N1 < N2 then {exec(IL,PC + 1,1 | Stk,Env)} else {exec(IL,PC + 1,0 | Stk,Env)} .
+  eq exec2(lessThan,IL,PC,N1 | N2 | Stk,Env) = if N1 < N2 then {exec(IL,PC + 1,0 | Stk,Env)} else {exec(IL,PC + 1,1 | Stk,Env)} .
 
   eq exec2(equal,IL,PC,empstk,Env) = errEnv .
   eq exec2(equal,IL,PC,N1 | empstk,Env) = errEnv .
@@ -398,29 +398,35 @@ mod! VM {
 
 open VM .
   ops x y z : -> Var .
-  ops il1 il2 il3 il4 il5 il6 il7 il8 il9 il10 : -> IList .
-  eq il1 = push(1) | store(x) | push(2) | store (y) | load(y) | load(y) | multiply |
-           store(y) | load(x) | push(2) | multiply | store(x) | push(16) | load(x) |
-           equal | jumpOnCond(2) | bjump(12) | quit | iln .
-  red run(il1) .
-  eq il2 = push(1) | store(x) | push(2) | store (y) | load(y) | load(y) | multiply |
-           store(y) | load(x) | push(2) | multiply | store(x) | push(64) | load(x) |
-           equal | jumpOnCond(2) | bjump(12) | quit | iln .
-  red run(il2) .
-  eq il3 = push(5) | push(15) | add | store(x) | quit | iln .
-  eq il4 = push(5) | push(15) | minus | store(x) | quit | iln .
-  eq il5 = push(15) | push(5) | divide | store(x) | quit | iln .
-  eq il6 = push(15) | push(5) | mod | store(x) | quit | iln .
-  eq il7 = push(15) | push(5) | equal | store(x) | quit | iln .
-  eq il8 = push(15) | push(5) | notEqual | store(x) | quit | iln .
-  eq il9 = push(15) | push(5) | lessThan | store(x) | quit | iln .
-  eq il10 = push(15) | push(5) | greaterThan | store(x) | quit | iln .
-  red run(il3) .
-  red run(il4) .
-  red run(il5) .
-  red run(il6) .
-  red run(il7) .
-  red run(il8) .
-  red run(il9) .
-  red run(il10) .
+  ops il1 il2 il3 il4 il5 il6 il7 il8 il9 il10 il11 : -> IList .
+  -- eq il1 = push(1) | store(x) | push(2) | store (y) | load(y) | load(y) | multiply |
+  --          store(y) | load(x) | push(2) | multiply | store(x) | push(16) | load(x) |
+  --          equal | jumpOnCond(2) | bjump(12) | quit | iln .
+  -- red run(il1) .
+  -- eq il2 = push(1) | store(x) | push(2) | store (y) | load(y) | load(y) | multiply |
+  --          store(y) | load(x) | push(2) | multiply | store(x) | push(64) | load(x) |
+  --          equal | jumpOnCond(2) | bjump(12) | quit | iln .
+  -- red run(il2) .
+  -- eq il3 = push(5) | push(15) | add | store(x) | quit | iln .
+  -- eq il4 = push(5) | push(15) | minus | store(x) | quit | iln .
+  -- eq il5 = push(15) | push(5) | divide | store(x) | quit | iln .
+  -- eq il6 = push(15) | push(5) | mod | store(x) | quit | iln .
+  -- eq il7 = push(15) | push(5) | equal | store(x) | quit | iln .
+  -- eq il8 = push(15) | push(5) | notEqual | store(x) | quit | iln .
+  -- eq il9 = push(15) | push(5) | lessThan | store(x) | quit | iln .
+  -- eq il10 = push(15) | push(5) | greaterThan | store(x) | quit | iln .
+  eq il11 = push(1) | store(x) | push(1) | store(y) | load(y) | push(10) |
+            lessThan | load(y) | push(10) | equal | or |
+            jumpOnCond(2) | jump(10) | load(x) | load(y) | 
+            multiply | store(x) | load(y) | push(1) | add |
+            store(y) | bjump(17) | quit | iln .
+  -- red run(il3) .
+  -- red run(il4) .
+  -- red run(il5) .
+  -- red run(il6) .
+  -- red run(il7) .
+  -- red run(il8) .
+  -- red run(il9) .
+  -- red run(il10) .
+  red run(il11) .
 close
