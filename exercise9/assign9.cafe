@@ -319,19 +319,15 @@ mod! VM {
 
   eq exec2(divide,IL,PC,empstk,Env) = errEnv .
   eq exec2(divide,IL,PC,N1 | empstk,Env) = errEnv .
-  eq exec2(divide,IL,PC,N2 | N1 | Stk,Env) = exec(IL,PC + 1,N2 quo N1 | Stk,Env) .
+  eq exec2(divide,IL,PC,N2 | N1 | Stk,Env) = exec(IL,PC + 1,N1 quo N2 | Stk,Env) .
 
   eq exec2(multiply,IL,PC,empstk,Env) = errEnv .
   eq exec2(multiply,IL,PC,N1 | empstk,Env) = errEnv .
   eq exec2(multiply,IL,PC,N1 | N2 | Stk,Env) = exec(IL,PC + 1,N2 * N1 | Stk,Env) .
 
-  eq exec2(divide,IL,PC,empstk,Env) = errEnv .
-  eq exec2(divide,IL,PC,N1 | empstk,Env) = errEnv .
-  eq exec2(divide,IL,PC,N2 | N1 | Stk,Env) = exec(IL,PC + 1,N2 quo N1 | Stk,Env) .
-
   eq exec2(mod,IL,PC,empstk,Env) = errEnv .
   eq exec2(mod,IL,PC,N1 | empstk,Env) = errEnv .
-  eq exec2(mod,IL,PC,N2 | N1 | Stk,Env) = exec(IL,PC + 1,N2 rem N1 | Stk,Env) .
+  eq exec2(mod,IL,PC,N2 | N1 | Stk,Env) = exec(IL,PC + 1,N1 rem N2 | Stk,Env) .
 
   eq exec2(store(V),IL,PC,empstk,Env) = errEnv .
   eq exec2(store(V),IL,PC,N1 | Stk,Env) = exec(IL,PC + 1, Stk, update(Env,V,N1)) .
@@ -340,11 +336,11 @@ mod! VM {
 
   eq exec2(greaterThan,IL,PC,empstk,Env) = errEnv .
   eq exec2(greaterThan,IL,PC,N1 | empstk,Env) = errEnv .
-  eq exec2(greaterThan,IL,PC,N1 | N2 | Stk,Env) = if N1 > N2 then {exec(IL,PC + 1,1 | Stk,Env)} else {exec(IL,PC + 1,0 | Stk,Env)} .
+  eq exec2(greaterThan,IL,PC,N1 | N2 | Stk,Env) = if N2 > N1 then {exec(IL,PC + 1,1 | Stk,Env)} else {exec(IL,PC + 1,0 | Stk,Env)} .
 
   eq exec2(lessThan,IL,PC,empstk,Env) = errEnv .
   eq exec2(lessThan,IL,PC,N1 | empstk,Env) = errEnv .
-  eq exec2(lessThan,IL,PC,N1 | N2 | Stk,Env) = if N1 < N2 then {exec(IL,PC + 1,0 | Stk,Env)} else {exec(IL,PC + 1,1 | Stk,Env)} .
+  eq exec2(lessThan,IL,PC,N1 | N2 | Stk,Env) = if N2 < N1 then {exec(IL,PC + 1,0 | Stk,Env)} else {exec(IL,PC + 1,1 | Stk,Env)} .
 
   eq exec2(equal,IL,PC,empstk,Env) = errEnv .
   eq exec2(equal,IL,PC,N1 | empstk,Env) = errEnv .
@@ -352,7 +348,7 @@ mod! VM {
 
   eq exec2(notEqual,IL,PC,empstk,Env) = errEnv .
   eq exec2(notEqual,IL,PC,N1 | empstk,Env) = errEnv .
-  eq exec2(notEqual,IL,PC,N1 | N2 | Stk,Env) = if N1 == N2 then {exec(IL,PC + 1,0 | Stk,Env)} else {exec(IL,PC + 1,1 | Stk,Env)} .
+  eq exec2(notEqual,IL,PC,N1 | N2 | Stk,Env) = if (not N1 == N2) then {exec(IL,PC + 1,1 | Stk,Env)} else {exec(IL,PC + 1,0 | Stk,Env)} .
 
   eq exec2(and,IL,PC,empstk,Env) = errEnv .
   eq exec2(and,IL,PC,N1 | empstk,Env) = errEnv .
@@ -397,8 +393,8 @@ mod! VM {
 }
 
 open VM .
-  ops x y z : -> Var .
-  ops il1 il2 il3 il4 il5 il6 il7 il8 il9 il10 il11 : -> IList .
+  ops x y z tmp : -> Var .
+  ops il1 il2 il3 il4 il5 il6 il7 il8 il9 il10 il11 il12 : -> IList .
   -- eq il1 = push(1) | store(x) | push(2) | store (y) | load(y) | load(y) | multiply |
   --          store(y) | load(x) | push(2) | multiply | store(x) | push(16) | load(x) |
   --          equal | jumpOnCond(2) | bjump(12) | quit | iln .
@@ -415,11 +411,21 @@ open VM .
   -- eq il8 = push(15) | push(5) | notEqual | store(x) | quit | iln .
   -- eq il9 = push(15) | push(5) | lessThan | store(x) | quit | iln .
   -- eq il10 = push(15) | push(5) | greaterThan | store(x) | quit | iln .
-  eq il11 = push(1) | store(x) | push(1) | store(y) | load(y) | push(10) |
-            lessThan | load(y) | push(10) | equal | or |
-            jumpOnCond(2) | jump(10) | load(x) | load(y) | 
-            multiply | store(x) | load(y) | push(1) | add |
-            store(y) | bjump(17) | quit | iln .
+  -- eq il11 = push(1) | store(x) | push(1) | store(y) | load(y) | push(10) |
+  --           lessThan | load(y) | push(10) | equal | or |
+  --           jumpOnCond(2) | jump(10) | load(x) | load(y) | 
+  --           multiply | store(x) | load(y) | push(1) | add |
+  --           store(y) | bjump(17) | quit | iln .
+
+  eq il12 = push(20000000000000000) | store(x) | push(0) | store(y) | load(x) | store(z) | 
+            load(y) | load(z) | notEqual | jumpOnCond(2) | jump(44) | load(z) | load(y) | 
+            minus | push(2) | mod | push(0) | equal | jumpOnCond(2) | jump(10) | load(y) | 
+            load(z) | load(y) | minus | push(2) | divide | add | store(tmp) | jump(11) | 
+            load(y) | load(z) | load(y) | minus | push(2) | divide | add | push(1) | add | 
+            store(tmp) | load(tmp) | load(tmp) | multiply | load(x) | greaterThan | 
+            jumpOnCond(2) | jump(6) | load(tmp) | push(1) | minus | store(z) | jump(3) | 
+            load(tmp) | store(y) | bjump(47) | quit | iln .
+  
   -- red run(il3) .
   -- red run(il4) .
   -- red run(il5) .
@@ -428,5 +434,6 @@ open VM .
   -- red run(il8) .
   -- red run(il9) .
   -- red run(il10) .
-  red run(il11) .
+  -- red run(il11) .
+  red run(il12) .
 close

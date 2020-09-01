@@ -191,17 +191,17 @@ mod! ENV {
   eq if false then {E&E1} else {E&E2} = E&E2 .
 }
 
-open ENV .
-  ops x y : -> Var .
-  op env : -> Env .
-  eq env = update(update(empEnv,x,0),y,1) .
-  red env .
-  red errEnv .
-  red lookup(env,x) .
-  red lookup(env,y) .
-  red nth(env,1) .
-  red nth(env,2) .
-close
+-- open ENV .
+--   ops x y : -> Var .
+--   op env : -> Env .
+--   eq env = update(update(empEnv,x,0),y,1) .
+--   red env .
+--   red errEnv .
+--   red lookup(env,x) .
+--   red lookup(env,y) .
+--   red nth(env,1) .
+--   red nth(env,2) .
+-- close
 
 --
 -- A stack is represented as a list of natural numbers.
@@ -310,19 +310,15 @@ mod! VM {
 
   eq exec2(divide,IL,PC,empstk,Env) = errEnv .
   eq exec2(divide,IL,PC,N1 | empstk,Env) = errEnv .
-  eq exec2(divide,IL,PC,N2 | N1 | Stk,Env) = exec(IL,PC + 1,N2 quo N1 | Stk,Env) .
+  eq exec2(divide,IL,PC,N2 | N1 | Stk,Env) = exec(IL,PC + 1,N1 quo N2 | Stk,Env) .
 
   eq exec2(multiply,IL,PC,empstk,Env) = errEnv .
   eq exec2(multiply,IL,PC,N1 | empstk,Env) = errEnv .
   eq exec2(multiply,IL,PC,N1 | N2 | Stk,Env) = exec(IL,PC + 1,N2 * N1 | Stk,Env) .
 
-  eq exec2(divide,IL,PC,empstk,Env) = errEnv .
-  eq exec2(divide,IL,PC,N1 | empstk,Env) = errEnv .
-  eq exec2(divide,IL,PC,N2 | N1 | Stk,Env) = exec(IL,PC + 1,N2 quo N1 | Stk,Env) .
-
   eq exec2(mod,IL,PC,empstk,Env) = errEnv .
   eq exec2(mod,IL,PC,N1 | empstk,Env) = errEnv .
-  eq exec2(mod,IL,PC,N2 | N1 | Stk,Env) = exec(IL,PC + 1,N2 rem N1 | Stk,Env) .
+  eq exec2(mod,IL,PC,N2 | N1 | Stk,Env) = exec(IL,PC + 1,N1 rem N2 | Stk,Env) .
 
   eq exec2(store(V),IL,PC,empstk,Env) = errEnv .
   eq exec2(store(V),IL,PC,N1 | Stk,Env) = exec(IL,PC + 1, Stk, update(Env,V,N1)) .
@@ -331,11 +327,11 @@ mod! VM {
 
   eq exec2(greaterThan,IL,PC,empstk,Env) = errEnv .
   eq exec2(greaterThan,IL,PC,N1 | empstk,Env) = errEnv .
-  eq exec2(greaterThan,IL,PC,N1 | N2 | Stk,Env) = if N1 > N2 then {exec(IL,PC + 1,1 | Stk,Env)} else {exec(IL,PC + 1,0 | Stk,Env)} .
+  eq exec2(greaterThan,IL,PC,N1 | N2 | Stk,Env) = if N2 > N1 then {exec(IL,PC + 1,1 | Stk,Env)} else {exec(IL,PC + 1,0 | Stk,Env)} .
 
   eq exec2(lessThan,IL,PC,empstk,Env) = errEnv .
   eq exec2(lessThan,IL,PC,N1 | empstk,Env) = errEnv .
-  eq exec2(lessThan,IL,PC,N1 | N2 | Stk,Env) = if N1 < N2 then {exec(IL,PC + 1,0 | Stk,Env)} else {exec(IL,PC + 1,1 | Stk,Env)} .
+  eq exec2(lessThan,IL,PC,N1 | N2 | Stk,Env) = if N2 < N1 then {exec(IL,PC + 1,0 | Stk,Env)} else {exec(IL,PC + 1,1 | Stk,Env)} .
 
   eq exec2(equal,IL,PC,empstk,Env) = errEnv .
   eq exec2(equal,IL,PC,N1 | empstk,Env) = errEnv .
@@ -343,7 +339,7 @@ mod! VM {
 
   eq exec2(notEqual,IL,PC,empstk,Env) = errEnv .
   eq exec2(notEqual,IL,PC,N1 | empstk,Env) = errEnv .
-  eq exec2(notEqual,IL,PC,N1 | N2 | Stk,Env) = if N1 == N2 then {exec(IL,PC + 1,0 | Stk,Env)} else {exec(IL,PC + 1,1 | Stk,Env)} .
+  eq exec2(notEqual,IL,PC,N1 | N2 | Stk,Env) = if (not N1 == N2) then {exec(IL,PC + 1,1 | Stk,Env)} else {exec(IL,PC + 1,0 | Stk,Env)} .
 
   eq exec2(and,IL,PC,empstk,Env) = errEnv .
   eq exec2(and,IL,PC,N1 | empstk,Env) = errEnv .
@@ -362,7 +358,6 @@ mod! VM {
 
   eq exec2(quit,IL,PC,Stk,Env) = Env .
 }
-
 
 --
 -- A compiler for Minila programs
@@ -438,31 +433,31 @@ mod! COMPILE {
 open COMPILE .
   ops x y z tmp : -> Var .
   
-  op p1 : -> Stm .
-  eq p1 = x := n(1) ;
-          y := n(1) ;
-          while y < n(10) || y === n(10) {
-            x := x * y ;
-            y := y + n(1) ;
-          } .
-  red run(compile(p1)) .
+  -- op p1 : -> Stm .
+  -- eq p1 = x := n(1) ;
+  --         y := n(1) ;
+  --         while y < n(10) || y === n(10) {
+  --           x := x * y ;
+  --           y := y + n(1) ;
+  --         } .
+  -- red run(compile(p1)) .
 
-  op p2 : -> Stm .
-  eq p2 = x := n(1) ;
-          for y n(1) n(10) {
-            x := y * x ;
-          } .
-  red run(compile(p2)) .
+  -- op p2 : -> Stm .
+  -- eq p2 = x := n(1) ;
+  --         for y n(1) n(10) {
+  --           x := y * x ;
+  --         } .
+  -- red run(compile(p2)) .
 
-  op p3 : -> Stm .
-  eq p3 = x := n(24) ;
-          y := n(30) ;
-          while y =!= n(0) {
-            z := x % y ;
-            x := y ;
-            y := z ;
-          } .
-  red run(compile(p3)) .
+  -- op p3 : -> Stm .
+  -- eq p3 = x := n(24) ;
+  --         y := n(30) ;
+  --         while y =!= n(0) {
+  --           z := x % y ;
+  --           x := y ;
+  --           y := z ;
+  --         } .
+  -- red run(compile(p3)) .
 
   op p4 : -> Stm .
   eq p4 = x := n(20000000000000000) ;
@@ -481,4 +476,25 @@ open COMPILE .
             }
           } .
   red run(compile(p4)) .
+
+  -- op p5 : -> Stm .
+  -- eq p5 = x := n(100) ;
+  --         y := n(100) ;
+  --         if (x === y) {
+  --           z := n(300) ;
+  --         } else {
+  --           z := n(400) ;
+  --         } .
+  -- red run(compile(p5)) .
+
+  -- op p6 : -> Stm .
+  -- eq p6 = x := n(24) ;
+  --       y := n(30) ;
+  --       while y =!= n(0) {
+  --         z := x % y ;
+  --         x := y ; 
+  --         y := z; 
+  --       } .
+  -- red run(compile(p6)) .
+
 close
