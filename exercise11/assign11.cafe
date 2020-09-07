@@ -276,9 +276,13 @@ mod! PNAT1 {
   op 0 : -> PNat {constr} .
   op s : PNat -> PNat {constr} .
   vars X Y Z : PNat .
+
+  -- sが1回でもかかっている->1以上の自然数
+  -- 0と1以上の自然数は常に異なる
   eq (0 = s(Y)) = false .
   eq (s(X) = s(Y)) = (X = Y) .
 
+  -- 
   op _+_ : PNat PNat -> PNat .
   eq 0 + Y = Y .
   eq s(X) + Y = s(X + Y) .
@@ -286,4 +290,194 @@ mod! PNAT1 {
   op _*_ : PNat PNat -> PNat .
   eq 0 * Y = 0 .
   eq s(X) * Y = (X * Y) + Y .
+
+  op fact1 : PNat -> PNat .
+  eq fact1(0) = s(0) .
+  eq fact1(s(X)) = s(X) * fact1(X) .
+
+  op fact2 : PNat -> PNat .
+  op sfact2 : PNat PNat -> PNat .
+  eq fact2(X) = sfact2(X,s(0)) .
+  eq sfact2(0,Y) = Y .
+  eq sfact2(s(X),Y) = sfact2(X,s(X) * Y) .
 }
+
+-- 手書きはフォーマットに従う
+-- 1. 証明をどこから始めるか書く(proof of theorem)
+-- 2. どの変数に着目してどのような方法を使うか
+-- 3. 証明に用いるfresh constantを書く(このタイミングでわからないこともあるのでスペースをあける)
+-- 4. Base case で証明するものを記載する redexと等式を書く
+-- 5. induction caseで証明するもの、帰納法の仮定を書く
+-- 6. 証明がどこで終わったのかを書く(end of proof of theorem)
+
+-- -> traceをcafeobjに任せることも可能
+
+-- base case
+set trace on
+open PNAT1 .
+  -- fresh constants
+  ops y z : -> PNat .
+  -- check
+  red (0 + y) + z = 0 + (y + z) .
+close
+set trace off
+
+-- indcution case
+set trace on
+open PNAT1 .
+  -- fresh constants
+  ops x y z : -> PNat .
+  -- IH
+  eq (x + Y) + Z = x + (Y + Z) .
+  -- check
+  red (s(x) + y) + z = s(x) + (y + z) .
+close
+set trace off
+
+-- commutativityの証明
+-- X+Y = Y+X
+
+-- base case
+-- 0+y = y+0
+-- 0+y->y by(+1)
+
+-- 補題 X + 0 = X (rz+) を仮定
+-- y+0->y by(rz+)
+
+-- induction case
+-- s(x) + y = y + s(x)
+-- x + Y = Y + x -- (IH)
+-- s(x) + y -> s(x + y) by(+2)
+-- s(x + y) -> s(y + x) by(IH)
+
+-- 補題 X+s(Y) = s(X+Y) (rs+)
+
+-- rz+
+-- lemma1
+-- X + 0 = X
+-- base case
+-- 0 + 0 = 0
+-- 0 + 0 -> 0 by(+1)
+
+-- induction case
+-- x + 0 = x (IH)
+-- s(x) + 0 = s(x)
+-- s(x) + 0 -> s(x+0) by(+2)
+-- s(x+0) -> s(x) by(IH)
+
+-- rs+
+-- lemma2
+-- s(X) + s(Y) = s(s(X)+Y)
+
+-- base case
+-- 0 + s(Y) = s(0+Y)
+-- 0 + s(Y) = s(Y) by(+1)
+
+-- s(0+Y) -> s(Y) by(+1)
+
+-- induction case
+-- s(x) + s(Y) = s(x+Y) (IH)
+
+-- lemma1
+-- base case
+open PNAT1 .
+  -- check
+  red 0 + 0 = 0 .
+close
+
+-- induction case
+open PNAT1 .
+  -- fresh constants
+  op x : -> PNat .
+  -- IH
+  eq x + 0 = x .
+  -- check
+  red s(x) + 0 = s(x) .
+close
+
+-- lemma2
+-- base case
+open PNAT1 .
+  -- fresh constants
+  op y : -> PNat .
+  -- check
+  red 0 + s(y) = s(0 + y) .
+close
+
+-- induction case
+open PNAT1 .
+  -- fresh constants
+  ops x y : -> PNat .
+  -- IH
+  eq x + s(Y) = s(x + Y) .
+  -- check
+  red s(x) + s(y) = s(s(x) + y) .
+close
+
+-- theorem2
+-- base case
+open PNAT1 .
+  -- fresh constants
+  op y : -> PNat .
+  -- lemmas
+  eq X + 0 = X . -- (rz+)
+  -- check
+  red 0 + y = y + 0 .
+close
+
+-- induction case
+open PNAT1 .
+  -- fresh constants
+  ops x y : -> PNat .
+  -- lemmas
+  eq X + s(Y) = s(X + Y) . -- (rs+)
+  -- IH
+  eq x + Y = Y + x .
+  -- check
+  red s(x) + y = y + s(x) .
+close
+
+-- assoc of _*_
+-- theorem 3
+-- (X * Y) * Z = X * (Y * Z)
+-- base case
+open PNAT1 .
+  -- fresh constants
+  ops y z : -> PNat .
+  -- check
+  red (0 * y) * z = 0 * (y * z) .
+close
+
+-- induction case
+-- (s(x) * Y) * Z = s(x) * (Y * Z) . 
+-- (x * Y) * Z = x * (Y * Z) - (IH)
+
+-- (s(x) * Y) * Z -> ((x * Y) + Y) * Z by(*1)
+-- (x * Y) * Z + (Y * Z) この形に持っていければ右辺と等しいことがIHから示せるので分配法則を補題で示す
+
+-- s(x) * (Y * Z) -> (x * (Y * Z)) + (Y * Z)
+-- x * (Y * Z) + (Y * Z)
+
+-- lemma1
+-- (x + y) * z = (x * z) + (y * z)
+-- base case
+-- (0 + y) * z = (0 * z) + (y * z)
+
+-- (0 + y) * z -> y * z by(+1)
+
+-- (0 * z) + (y * z) -> 0 + (y * z) by(*1)
+-- 0 + (y * z) -> y * z by(+1)
+
+open PNAT1 .
+  -- fresh constants
+  ops y z : -> PNat .
+  -- check
+  red (0 + y) * z = (0 * z) + (y * z) .
+close
+
+open PNAT1 .
+  -- fresh constants
+  ops x y z : -> PNat .
+  -- IH
+  eq (x * Y) * Z = x * (Y * Z) . 
+close

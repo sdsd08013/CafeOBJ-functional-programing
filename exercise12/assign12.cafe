@@ -287,3 +287,27 @@ mod! PNAT1 {
   eq 0 * Y = 0 .
   eq s(X) * Y = (X * Y) + Y .
 }
+
+mod! LIST (M :: TRIV-ERR) {
+  pr(NAT-ERR)
+  [List]
+  op nil : -> List {constr} .
+  op _|_ : Elt.M List -> List {constr} .
+  op _@_ : List List -> List .
+  eq nil @ L2 = L2 .
+  eq (E | L1) @ L2 = E | (L1 @ L2) .
+  eq (nil = E | L1) = false .
+  op rev1 : List -> List .
+  eq rev1(nil) = nil .
+  eq rev1(E | L1) = rev1(L1) @ (E | nil) .
+  op rev2 : List -> List .
+  -- sub rev2
+  op sr2 : List List -> List .
+  eq rev2(L1) = sr2(L1,nil) .
+  eq sr2(nil,L2) = L2 .
+  eq sr2(E | L1,L2) = sr2(L1,E | L2) .
+  vars E E2 : Elt.E .
+  vars L1 L2 : List .
+  eq (E | L1 = E2 | L2) = (E = E2) and (L1 = L2) .
+}
+ 
