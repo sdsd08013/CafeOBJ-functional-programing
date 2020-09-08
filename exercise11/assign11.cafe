@@ -292,14 +292,14 @@ mod! PNAT1 {
   eq s(X) * Y = (X * Y) + Y .
 
   op fact1 : PNat -> PNat .
-  eq fact1(0) = s(0) .
-  eq fact1(s(X)) = s(X) * fact1(X) .
+  eq fact1(0) = s(0) . -- f1-1
+  eq fact1(s(X)) = s(X) * fact1(X) . -- f1-2
 
   op fact2 : PNat -> PNat .
   op sfact2 : PNat PNat -> PNat .
-  eq fact2(X) = sfact2(X,s(0)) .
-  eq sfact2(0,Y) = Y .
-  eq sfact2(s(X),Y) = sfact2(X,s(X) * Y) .
+  eq fact2(X) = sfact2(X,s(0)) . -- f2
+  eq sfact2(0,Y) = Y . -- sf2-1
+  eq sfact2(s(X),Y) = sfact2(X,s(X) * Y) . -- sf2-2
 }
 
 -- 手書きはフォーマットに従う
@@ -675,13 +675,28 @@ mod! PNAT3 {
   eq fact2(X) = sfact2(X,s(0)) .
   eq sfact2(0,Y) = Y .
   eq sfact2(s(X),Y) = sfact2(X,s(X) * Y) .
+  -- sfact2(s(5),s(0)) = sfact2(s(4),s(5)*s(0))
+  -- sfact2(s(4),s(5)*s(0)) = sfact2(s(3),s(4)*s(5)*s(0))
 
+  op sum1 : PNat -> PNat .
+  eq sum1(0) = s(0) . -- s1-1
+  eq sum1(s(X)) = s(X) + sum1(X) . -- s1-2
+
+  op sum2 : PNat -> PNat .
+  op ssum2 : PNat PNat -> PNat .
+  eq sum2(X) = ssum2(X,s(0)) . -- s2
+  eq ssum2(0,Y) = Y . -- ss2-1
+  eq ssum2(s(X),Y) = ssum2(X,s(X) + Y) . -- ss2-2
 }
 
 -- fact
 -- theorem fact1(X) = fact2(X)
 
 -- base case
+-- fact1(0) = fact2(0)
+-- fact1(0) -> s(0) by(f1-1)
+-- fact2(0) -> sfact2(0, s(0)) . by(f2)
+-- sfact2(0,s(0)) -> s(0) . by(f2-1)
 open PNAT3 .
   -- fresh constants
   ops x : -> PNat .
@@ -698,6 +713,33 @@ open PNAT3 .
 close
 
 -- induction case
+-- fact1(s(x)) = fact2(s(x))
+-- fact1(x) = fact2(x) -- (IH)
+
+-- fact1(s(x)) -> s(x) * fact1(x) -- by(f1-2)
+-- s(x)*fact1(x) -> s(x)*fact2(x) -- by(IH)
+-- s(x)*fact2(x) -> s(x) * sfact2(x,s(0)) -- by(f2)
+
+-- fact2(s(x)) -> sfact2(s(x),s(0)) -- by(f2)
+-- sfact2(s(x),s(0)) -> sfact2(x, s(x)*s(0)) -- by(sf2-2)
+
+-- lemma1 Y * sfact2(X,Z) = sfact2(X, Y * Z)
+-- base case
+-- y * sfact2(0,z) -> y * z by(sf2-1)
+-- sfact2(0, y * z) -> y * z by(sf2-1)
+
+-- induction case
+-- y * sfact2(s(x),z) = sfact2(s(x), y * z)
+-- y * sfact2(x,z) = sfact2(x, y * z) -- IH
+
+-- y*sfact2(s(x),z) -> y*sfact2(x,s(x)*z) -- by(sf2-2)
+-- y*sfact2(x,s(x)*z) -> sfact2(x,y*(s(x)*z)) -- by(IH)
+
+-- sfact2(s(x),y*z) -> sfact2(x,s(x)*(y*z)) -- by(sf2-2)
+-- sfact2(x,s(x)*(y*z)) -> sfact2(x,(s(x)*y)*z) -- by(assoc)
+-- sfact2(x,(s(x)*y)*z) -> sfact2(x,(y*s(x))*z) -- by(comm)
+-- sfact2(x,(y*s(x))*z -> sfact2(x,y*(s(x)*z)) -- by(comm)
+
 open PNAT3 .
   -- fresh constants
   ops x y z : -> PNat .
@@ -725,4 +767,55 @@ open PNAT3 .
   eq fact1(x) = fact2(x) .
   -- check
   red fact1(s(x)) = fact2(s(x)) .
+close
+
+
+-- ####### theorem sum1(X) = sum2(X)
+-- Proof of Theorem by Structual induction on X .
+-- Let x be fresh constants of PNat .
+
+-- Base case
+-- sum1(0) = sum2(0)
+-- sum1(0) -> s(0) by(s1)
+-- sum2(0) -> ssum2(0,s(0)) by(s2)
+-- ssum2(0,s(0)) -> s(0) by(ss2-1)
+
+-- Induction case
+-- sum1(s(x)) = sum2(s(x))
+-- sum1(x) = sum2(x) IH
+-- sum1(s(x)) -> s(x) + sum1(x) by(s1-2)
+-- s(x) + sum1(x) -> s(x) + sum2(x) by(IH)
+-- s(x) + sum2(x) -> s(x) + ssum2(x,s(0)) by(s2)
+
+-- sum2(s(x)) -> ssum2(s(x),s(0)) by(s2)
+-- ssum2(s(x),s(0)) -> ssum2(x,s(x)+s(0)) by(ss-2)
+
+-- ######## lemma
+-- y + ssum2(s(x),s(0)) = ssum2(x,s(x)+s(0))
+-- x + ssum2(Y,Z) = ssum2(Y,x+Z) -- IH
+
+-- Base case
+-- x + ssum2(0,Z) = ssum2(0,x+Z)
+
+-- x + ssum2(0,Z) -> x + Z by(ss2-1)
+-- ssum2(0,x+Z) -> x + Z by(ss2-1)
+
+-- Induction case
+-- y + ssum2(s(x),Z) = ssum2(s(x),y+Z)
+
+-- y + ssum2(s(x),Z) -> y + ssum2(x,s(x) + Z) by(ss2-2)
+-- y + ssum2(x,s(x) + Z) -> ssum(x, y + (s(x) + Z)) by(IH)
+
+-- ssum2(s(x),y+Z) -> ssum2(x, s(x) + (y+z)) by(ss2-2)
+-- ssum2(x, s(x) + (y+z)) -> ssum2(x, (s(x) + y) + z) by(assoc)
+-- ssum2(x, (s(x) + y) + z) -> ssum2(x, (y + s(x)) + z) by(comm)
+-- ssum2(x, (y + s(x)) + z) -> ssum2(x, y+(s(x) + z)) by(assoc)
+
+-- end of proof
+
+open PNAT3 .
+  op x : -> PNat .
+  eq sum1(x) = sum2(x) .
+  eq Y + ssum2(X,Z) = ssum2(X,Y + Z) . -- IH
+  red sum1(s(x)) = sum2(s(x)) .
 close
