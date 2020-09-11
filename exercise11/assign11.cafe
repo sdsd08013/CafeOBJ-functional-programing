@@ -40,17 +40,14 @@ mod! PNAT1 {
 -- -> traceをcafeobjに任せることも可能
 
 -- base case
-set trace on
 open PNAT1 .
   -- fresh constants
   ops y z : -> PNat .
   -- check
   red (0 + y) + z = 0 + (y + z) .
 close
-set trace off
 
 -- indcution case
-set trace on
 open PNAT1 .
   -- fresh constants
   ops x y z : -> PNat .
@@ -59,7 +56,6 @@ open PNAT1 .
   -- check
   red (s(x) + y) + z = s(x) + (y + z) .
 close
-set trace off
 
 -- commutativityの証明
 -- X+Y = Y+X
@@ -343,12 +339,12 @@ close
 
 -- induction case
 open PNAT2 .
-  -- fresh constant
+  -- fresh constants
   ops x y : -> PNat .
   -- IH
-  eq x + s(Y) = (x * Y) + x .
+  eq x * s(Y) = (x * Y) + x . 
   -- check
-  red s(x) * s(Y) = (s(x) * Y) + s(x) .
+  red s(x) * s(y) = (s(x) * y) + s(x) . 
 close
 
 
@@ -356,11 +352,11 @@ close
 -- base case
 open PNAT2 .
   -- fresh constant
-  ops x : -> PNat .
+  ops y : -> PNat .
   -- IH
-  eq x * 0 = 0 * x . -- (rz)
+  eq X * 0 = 0 . -- (rz)
   -- check
-  red 0 * s(x) = s(x) * 0 .
+  red 0 * y = y * 0 .
 close
 
 -- induction case
@@ -402,8 +398,6 @@ mod! PNAT3 {
   eq fact2(X) = sfact2(X,s(0)) .
   eq sfact2(0,Y) = Y .
   eq sfact2(s(X),Y) = sfact2(X,s(X) * Y) .
-  -- sfact2(s(5),s(0)) = sfact2(s(4),s(5)*s(0))
-  -- sfact2(s(4),s(5)*s(0)) = sfact2(s(3),s(4)*s(5)*s(0))
 
   op sum1 : PNat -> PNat .
   eq sum1(0) = s(0) . -- s1-1
@@ -470,11 +464,14 @@ close
 open PNAT3 .
   -- fresh constants
   ops x y z : -> PNat .
-  -- lemmas eq(X+Y)*Z=(X*Z)+(Y*Z). --(d*o+) -- IH
+  -- lemmas 
+  eq (X + Y) * Z = (X * Z) + (Y * Z) . 
+  -- IH
   eq Y * sfact2(x,Z) = sfact2(x,Y * Z) .
   -- check
   red y * sfact2(s(x),z) = sfact2(s(x),y * z) .
 close
+
 
 -- induction case
 -- fact1(s(x)) = fact2(s(x))
@@ -540,9 +537,48 @@ close
 
 -- end of proof
 
+-- theorem base case
 open PNAT3 .
-  op x : -> PNat .
+  -- fresh constants
+  ops x : -> PNat .
+  -- check
+  red sum1(0) = sum2(0) .
+close
+
+-- theorem induction case
+open PNAT3 .
+  -- fresh constants
+  ops x y z : -> PNat .
+  -- lemma
+  eq Y + ssum2(x,Z) = ssum2(x,Y + Z) .
+  -- IH
   eq sum1(x) = sum2(x) .
-  eq Y + ssum2(X,Z) = ssum2(X,Y + Z) . -- IH
+  -- check
   red sum1(s(x)) = sum2(s(x)) .
 close
+
+-- lemma base case
+open PNAT3 .
+  -- fresh constants
+  ops y z : -> PNat .
+  -- check
+  red y + ssum2(0,z) = ssum2(0, y + z) .
+close
+
+-- lemma induction case
+open PNAT3 .
+  -- fresh constants
+  ops x y z : -> PNat .
+  -- IH
+  eq Y + ssum2(x,Z) = ssum2(x,Y + Z) .
+  -- check
+  red y + ssum2(s(x),z) = ssum2(s(x),y + z) .
+close
+
+-- Y + ssum2(x,Z) -> Y + ssum2(x,s(x) + Z) 
+-- Y + ssum2(x,s(x) + Z)  -> Y + ssum2(x, s(x + Z)) .
+-- Y + ssum2(x, s(x + Z)) -> ssum2(x, y + s(x + Z)).
+-- ssum2(x, y + s(x + Z)) -> ssum2(x, s((x+z) + y))
+
+-- ssum2(s(x),y + z) -> ssum2(x,(s(x) + (y + z)))
+-- ssum2(x,(s(x) + (y + z))) -> ssum2(x,(s(x + (y + z))))
