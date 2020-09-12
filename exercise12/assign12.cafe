@@ -25,6 +25,20 @@ mod! LIST1 (E :: TRIV) {
   eq sr2(E | L1,L2) = sr2(L1,E | L2) . -- (sr2-2)
 }
 
+-- sr2(l1, nil) @ (e2 | l2) = sr2(l1, e2 | l2) — (IH)
+
+-- l
+-- sr2(e1 | l1, nil) @ (e2 | l2) -> sr2(l1, e1 | nil) @ (e2 | l2) by(sr2-2)
+-- sr2(l1, e1 | nil) @ (e2 | l2) -> (sr2(l1, nil) @ (e1 | nil)) @ (e2 | l2) by(IH)
+-- (sr2(l1, nil) @ (e1 | nil)) @ (e2 | l2) -> sr2(l1, nil) @ ((e1 | nil) @ (e2 | l2)) by(asssoc @)
+-- sr2(l1, nil) @ (e1 | nil) @ (e2 | l2) -> sr2(l1, nil) @ (e1 | nil @ (e2 | l2)) by(@2)
+-- sr2(l1, nil) @ (e1 | nil @ (e2 | l2)) -> sr2(l1, nil) @ (e1 | (e2 | l2)) by(@1)
+
+-- r
+-- sr2(e1 | l1, e2 | l2) -> sr2(l1, e1 | e2 | l2) by(sr2-2)
+-- sr2(l1, e1 | e2 | l2) -> sr2(l1, nil) @ (e1 | e2 | l2) by(IH)
+
+
 -- Theorem1 assoc _@_
 -- (L1 @ L2) @ L3 = L1 @ (L2 @ L3)
 -- base case
@@ -59,7 +73,6 @@ open LIST1 .
 close
 
 -- lemma1 induction case
-set trace on
 open LIST1 .
   -- fresh constants
   ops l1 l2 : -> List .
@@ -69,7 +82,6 @@ open LIST1 .
   -- check
   red sr2(e | l1,e2 | l2) = sr2(e | l1,nil) @ (e2 | l2) .
 close
-set trace off
 
 -- rev1(L1) = rev2(L1) base case
 open LIST1 .
@@ -85,6 +97,75 @@ open LIST1 .
   -- induction hypothesis
   eq rev1(l1) = rev2(l1) .
   -- lemmas
-  eq sr2(L1,E2 | L2) = sr2(L1,nil) @ (E2 | L2) . -- check
+  eq sr2(L1,E2 | L2) = sr2(L1,nil) @ (E2 | L2) . 
+  -- check
   red rev1(e | l1) = rev2(e | l1) .
+close
+
+-- theorem base case
+open LIST1 .
+  -- check
+  red rev1(rev1(nil)) = nil .
+close
+
+-- theorem induction case
+open LIST1 .
+  -- fresh constants
+  op l1 : -> List .
+  op e : -> Elt.E .
+  -- ih
+  eq rev1(rev1(l1)) = l1 .
+  -- lemma
+  eq rev1(rev1(L1) @ L2) = rev1(L2) @ L1 .
+  -- check
+  red rev1(rev1(e | l1)) = e | l1 .
+close
+
+-- lemma2
+-- rev1(rev(L1) @ L2) = rev1(L2) @ L1
+-- base case
+open LIST1 .
+  -- fresh constants
+  ops l1 l2 : -> List .
+  op e : -> Elt.E .
+  -- lemma
+  eq L1 @ nil = L1 .
+  -- check
+  red rev1(rev1(nil) @ l2) = rev1(l2) @ nil .
+close
+
+-- induction case
+open LIST1 .
+  -- fresh constants
+  ops l1 l2 : -> List .
+  op e : -> Elt.E .
+  -- ih
+  eq rev1(rev1(l1) @ L2) = rev1(L2) @ l1 .
+  -- lemma
+  eq (L1 @ L2) @ L3 = L1 @ (L2 @ L3) .
+  eq L1 @ nil = L1 .
+  -- check
+  red rev1(rev1(e | l1) @ l2) = rev1(l2) @ (e | l1) .
+close
+
+-- lemma3
+-- L1 @ nil = L1 .
+-- base case
+open LIST1 .
+  -- fresh constants
+  ops l1 l2 : -> List .
+  op e : -> Elt.E .
+  -- check
+  red nil @ nil = nil .
+close
+
+-- induction case
+open LIST1 .
+  -- fresh constants
+  ops l1 l2 : -> List .
+  op e : -> Elt.E .
+  -- ih
+  eq l1 @ nil = l1 .
+  -- check
+  red (e | l1) @ nil = (e | l1) .
 close

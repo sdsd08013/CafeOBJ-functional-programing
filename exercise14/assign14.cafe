@@ -1,208 +1,141 @@
--- M(C(p)) = I(p)
--- プログラムpをcompileした結果をvmで実行した結果がpをインタープリッとしたものと等しい
+-- :goal { eq [assoc+] : (X+Y) + Z = X + (Y+Z) . }
 
-mod! PNAT principal-sort PNat&Err {
-  [PZero NzPNat < PNat]
-  [PNat ErrPNat < PNat&Err]
-  op 0 : -> PZero {constr} .
-  op s : PNat -> NzPNat {constr} .
-  op errPNat : -> ErrPNat {constr} .
+-- ind on X:S
+-- どの変数に着目するか
+
+-- :apply(tc)
+-- theorem of constant
+
+-- :apply(rd)
+-- reduction
+
+mod! PNAT1 {
+  [PNat]
+  op 0 : -> PNat {constr} .
+  op s : PNat -> PNat {constr} .
+  vars X Y Z : PNat .
+
+  -- sが1回でもかかっている->1以上の自然数
+  -- 0と1以上の自然数は常に異なる
+  eq (0 = s(Y)) = false .
+
+  eq (s(X) = s(Y)) = (X = Y) .
+
   -- 
-  vars M N :PNat .
-  vars ME NE : PNat&Err .
-
-  -- eqlというcafeobjの組み込みモジュールにop宣言
-  eq (0 = s(N)) = false .
-  eq (s(M) = s(N)) = (M = N) .
-  eq (errPNat = N) = false .
-
-  op if_then{_}else{_} : Bool PNat&Err PNat&Err -> PNat&Err .
-  eq if true then {ME} else {NE} = ME .
-  eq if false then {ME} else {NE} = NE .
-
-  op _<_ : PNat PNat -> Bool . eq 0 < 0 = false .
-  eq 0 < s(N) = true .
-  eq s(M) < 0 = false .
-  eq s(M) < s(N) = M < N .
   op _+_ : PNat PNat -> PNat .
-  op _+_ : PNat&Err PNat&Err -> PNat&Err . eq 0 + N = N .
-  eq s(M) + N = s(M + N) .
-  eq ME + errPNat = errPNat .
-  eq errPNat + NE = errPNat .
+  eq 0 + Y = Y .
+  eq s(X) + Y = s(X + Y) .
 
   op _*_ : PNat PNat -> PNat .
-  op _*_ : PNat&Err PNat&Err -> PNat&Err . eq 0 * N = 0 .
-  eq s(M) * N = N + (M * N) .
-  eq ME * errPNat = errPNat .
-  eq errPNat * NE = errPNat .
-  op sd : PNat PNat -> PNat .
-  op sd : PNat&Err PNat&Err -> PNat&Err . eq sd(0,N) = N .
-  eq sd(s(M),0) = s(M) .
-  eq sd(s(M),s(N)) = sd(M,N) .
-  eq sd(ME,errPNat) = errPNat .
-  eq sd(errPNat,NE) = errPNat .
+  eq 0 * Y = 0 .
+  eq s(X) * Y = (X * Y) + Y .
 
-  op _quo_ : PNat PZero -> ErrPNat .
-  op _quo_ : PNat NzPNat -> PNat .
-  op _quo_ : PNat&Err PNat&Err -> PNat&Err .
-  eq M quo 0 = errPNat .
-  eq M quo s(N) = if M < s(N) then {0} else {s(sd(M,s(N)) quo s(N))} . eq ME quo errPNat = errPNat .
-  eq errPNat quo NE = errPNat .
-  op _rem_ : PNat PZero -> ErrPNat .
-  op _rem_ : PNat NzPNat -> PNat .
-  op _rem_ : PNat&Err PNat&Err -> PNat&Err .
-  eq M rem 0 = errPNat .
-  eq M rem s(N) = if M < s(N) then {M} else {sd(M,s(N)) rem s(N)} . eq ME rem errPNat = errPNat .
-  eq errPNat rem NE = errPNat .
+  op fact1 : PNat -> PNat .
+  eq fact1(0) = s(0) . -- f1-1
+  eq fact1(s(X)) = s(X) * fact1(X) . -- f1-2
+
+  op fact2 : PNat -> PNat .
+  op sfact2 : PNat PNat -> PNat .
+  eq fact2(X) = sfact2(X,s(0)) . -- f2
+  eq sfact2(0,Y) = Y . -- sf2-1
+  eq sfact2(s(X),Y) = sfact2(X,s(X) * Y) . -- sf2-2
 }
 
-mod! EXP {
-  [ExpPNat < Exp]
-  op 0 : -> ExpPNat {constr} .
-  op s : ExpPNat -> ExpPNat {constr} .
-  op _+_ : Exp Exp -> Exp {constr l-assoc prec: 30} .
-  op _-_ : Exp Exp -> Exp {constr l-assoc prec: 30} .
-  op _*_ : Exp Exp -> Exp {constr l-assoc prec: 29} .
-  op _/_ : Exp Exp -> Exp {constr l-assoc prec: 29} .
-  op _%_ : Exp Exp -> Exp {constr l-assoc prec: 29} .
+
+"Theorem 1. [_+_ is associative (assoc+)] (X + Y) + Z = X + (Y + Z)
+Proof. By induction on X."
+open PNAT1 .
+  :goal { eq [assoc+] : (X + Y) + Z = X + (Y + Z) . } :ind on (X:PNat)
+  :apply (si)
+  -- I. Base case
+  :apply (tc)
+  :apply (rd)
+  -- II. Induction case
+  :apply (tc)
+  :apply (rd)
+close
+"End of Proof of Theorem 1"
+
+mod! PNAT3 {
+  [PNat]
+  op 0 : -> PNat {constr} .
+  op s : PNat -> PNat {constr} .
+  vars X Y Z : PNat .
+
+  -- sが1回でもかかっている->1以上の自然数
+  -- 0と1以上の自然数は常に異なる
+  eq (0 = s(Y)) = false .
+
+  eq (s(X) = s(Y)) = (X = Y) .
+
+  -- 
+  op _+_ : PNat PNat -> PNat {assoc comm} .
+  eq 0 + Y = Y .
+  eq s(X) + Y = s(X + Y) .
+
+  op _*_ : PNat PNat -> PNat {assoc comm} .
+  eq 0 * Y = 0 .
+  eq s(X) * Y = (X * Y) + Y .
+
+  op fact1 : PNat -> PNat .
+  eq fact1(0) = s(0) . -- f1-1
+  eq fact1(s(X)) = s(X) * fact1(X) . -- f1-2
+
+  op fact2 : PNat -> PNat .
+  op sfact2 : PNat PNat -> PNat .
+  eq fact2(X) = sfact2(X,s(0)) . -- f2
+  eq sfact2(0,Y) = Y . -- sf2-1
+  eq sfact2(s(X),Y) = sfact2(X,s(X) * Y) . -- sf2-2
 }
 
-mod! INTER { 
-  pr(PNAT) 
-  pr(EXP)
-  op inter : ExpPNat -> PNat .
-  op inter : Exp -> PNat&Err .
-  var N : PNat . 
-  var EN : ExpPNat .
-  vars E E1 E2 : Exp .
-  eq inter(0) = 0 .
-  eq inter(s(EN)) = s(inter(EN)) .
-  eq inter(E1 + E2) = inter(E1) + inter(E2) .
-  eq inter(E1 - E2) = sd(inter(E1),inter(E2)) . 
-  eq inter(E1 * E2) = inter(E1) * inter(E2) .
-  eq inter(E1 / E2) = inter(E1) quo inter(E2) . 
-  eq inter(E1 % E2) = inter(E1) rem inter(E2) .
+mod! PNAT3-D*O+ {
+  pr(PNAT3)
+  vars X Y Z : PNat .
+  eq (X + Y) * Z = (X * Z) + (Y * Z) .
 }
 
-mod! INSTR principal-sort Instr { 
-  pr(PNAT)
-  [Instr]
-  op push : PNat -> Instr {constr} . 
-  op add : -> Instr {constr} .
-  op minus : -> Instr {constr} . 
-  op mult : -> Instr {constr} . 
-  op div : -> Instr {constr} . 
-  op mod : -> Instr {constr} .
-}
-
-mod! LIST (E :: TRIV) {
+mod! LIST1 (E :: TRIV) {
   [List]
   op nil : -> List {constr}
-  op _|_ : Elt.E List -> List {constr} . 
-  op _@_ : List List -> List {assoc} . 
-  var E : Elt.E .
-  vars L1 L2 : List .
-  -- _@_
-  eq nil @ L2 = L2 .
-  eq (E | L1) @ L2 = E | (L1 @ L2) .
+  op _|_ : Elt.E List -> List {constr} .
+  vars E E2 : Elt.E .
+  vars L1 L2 L3 : List .
+  eq (nil = E | L1) = false .
+  eq (E | L1 = E2 | L2) = (E = E2) and (L1 = L2) .
+  op _@_ : List List -> List .
+  eq nil @ L2 = L2 . -- (@1)
+  eq (E | L1) @ L2 = E | (L1 @ L2) . -- (@2)
+  op rev1 : List -> List .
+  eq rev1(nil) = nil . -- (r1-1) 
+  eq rev1(E | L1) = rev1(L1) @ (E | nil) . -- (r1-2)
+  op rev2 : List -> List .
+  op sr2 : List List -> List .
+  eq rev2(L1) = sr2(L1,nil) . -- (r2)
+  eq sr2(nil,L2) = L2 . -- (sr2-1)
+  eq sr2(E | L1,L2) = sr2(L1,E | L2) . -- (sr2-2)
 }
 
-mod! ILIST { 
-  pr(LIST(INSTR)
-    * {sort List -> IList}
-  ) 
+
+mod! PNAT3-SF2-P {
+  pr(PNAT3)
+  vars X Y Z : PNat .
+  eq [sf2-p] : Y * sfact2(X,Z) = sfact2(X,Y * Z) .
 }
 
-mod! STACK { 
-  pr(LIST(PNAT)
-    * {sort List -> Stack, op nil -> empstk}
-  )
-}
 
-mod! VM {
-  pr(ILIST)
-  pr(STACK)
-  op vm : IList -> PNat&Err .
-  op exec : IList Stack -> PNat&Err . var IL : IList .
-  var PC : PNat .
-  var Stk : Stack .
-  var N : PNat .
-  vars NE NE1 NE2 : PNat&Err .
-  eq vm(IL) = exec(IL,empstk) .
-  eq exec(nil,empstk) = errPNat .
-  eq exec(nil,NE | empstk) = NE .
-  eq exec(nil,NE | NE1 | Stk) = errPNat .
-  eq exec(push(N) | IL,Stk) = exec(IL,N | Stk) .
-  eq exec(add | IL,empstk) = errPNat .
-  eq exec(add | IL,NE | empstk) = errPNat .
-  eq exec(add | IL,NE2 | NE1 | Stk) = exec(IL,NE1 + NE2 | Stk) .
-  eq exec(minus | IL,empstk) = errPNat .
-  eq exec(minus | IL,NE | empstk) = errPNat .
-  eq exec(minus | IL,NE2 | NE1 | Stk) = exec(IL,sd(NE1,NE2) | Stk) .
-  eq exec(mult | IL,empstk) = errPNat .
-  eq exec(mult | IL,NE | empstk) = errPNat .
-  eq exec(mult | IL,NE2 | NE1 | Stk) = exec(IL,NE1 * NE2 | Stk) .
-  eq exec(div | IL,empstk) = errPNat .
-  eq exec(div | IL,NE | empstk) = errPNat .
-  eq exec(div | IL,NE2 | NE1 | Stk) = exec(IL,NE1 quo NE2 | Stk) .
-  eq exec(mod | IL,empstk) = errPNat .
-  eq exec(mod | IL,NE | empstk) = errPNat .
-  eq exec(mod | IL,NE2 | NE1 | Stk) = exec(IL,NE1 rem NE2 | Stk) .
-}
-
-mod! COMP { 
-  pr(EXP) 
-  pr(ILIST)
-  op comp : Exp -> IList .
-  op en2n : ExpPNat -> PNat . 
-  var EN : ExpPNat .
-  vars E E1 E2 : Exp . 
-  eq comp(EN) = push(en2n(EN)) | nil .
-  eq comp(E1 + E2) = comp(E1) @ comp(E2) @ (add | nil) . 
-  eq comp(E1 - E2) = comp(E1) @ comp(E2) @ (minus | nil) . 
-  eq comp(E1 * E2) = comp(E1) @ comp(E2) @ (mult | nil) . 
-  eq comp(E1 / E2) = comp(E1) @ comp(E2) @ (div | nil) . 
-  eq comp(E1 % E2) = comp(E1) @ comp(E2) @ (mod | nil) . 
-  eq en2n(0) = 0 .
-  eq en2n(s(EN)) = s(en2n(EN)) .
-}
-
-mod! VERIFY-COMP { 
-  pr(INTER) 
-  pr(VM) 
-  pr(COMP) 
-  op th1 : Exp -> Bool .
-  op lem1 : ExpPNat -> Bool .
-  op lem2 : Exp IList Stack -> Bool .
-  var E : Exp . 
-  var EN : ExpPNat . 
-  var L : IList . 
-  var S : Stack .
-  -- theorem1 
-  -- 全ての式に対してインタープリタで実行した結果とコンパイルしたものを仮想機械で実行したものの結果が等しい
-  eq th1(E) = (inter(E) = vm(comp(E))) .
-  -- lemma1
-  -- 自然数に対する実行結果の比較
-  eq lem1(EN) = (inter(EN) = vm(comp(EN))) .
-  -- lemma2
-  eq lem2(E,L,S) = (exec(comp(E) @ L,S) = exec(L,vm(comp(E)) | S)) .
-}
-
-open VERIFY-COMP .
-  -- fresh const
-  op en : -> ExpPNat .
-  -- lemma
-  eq inter(EN) = vm(comp(EN)) .
-  -- check
-  red th1(en) .
+"Theorem 5 [Correctness of tail recursive fact (ctrf)] 
+fact1(X) = fact2(X)
+Proof. By induction on X."
+open PNAT3-SF2-P .
+  :goal { eq [ctrf] : fact1(X) = fact2(X) . } 
+  :ind on (X:PNat)
+  :apply (si)
+  -- I. Base case
+  :apply (rd)
+  -- II. Induction case
+  :apply (rd)
 close
+"End of Proof of Theorem 5"
 
-open VERIFY-COMP .
-  -- fresh const
-  ops e1 e2 : -> Exp .
-  -- IH
-  eq inter(e1) = vm(comp(e1)) .
-  eq inter(e2) = vm(comp(e2)) .
-  -- check
-  red th1(e1 + e2) .
-close
+-- exercises2
+-- 手書き,補助,CITPについて意見(感想)を述べる
