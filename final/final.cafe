@@ -1,0 +1,60 @@
+mod! A {
+  [A]
+  op z : -> A {constr} .
+  op y : A -> A {constr} .
+  op _x_ : A A -> A .
+  op _w_ : A A -> A .
+  vars X Y : A .
+  -- X + 0 -> X
+  eq [x1] : X x z = X .
+  -- X + y(Y) = y(X) + X
+  eq [x2] : X x y(Y) = y(X) x Y .
+  -- X * 0 = 0
+  eq [w1] : X w z = z .
+  -- X * y(Y) = X + (X * Y)
+  eq [w2] : X w y(Y) = X x (X w Y) .
+}
+-- y: var(変数)を受け取りsortAを返す
+-- z: sortAを返す zは変数を持たないtermsでground terms
+
+set trace on
+open A .
+  ops a b c : -> A .
+  -- red X w (Y x Z) = (X w Y) w (X w Z) .
+  red  .
+  -- red a w (b x z) .
+  -- red (a w b) w (a w c) .
+close
+set trace off
+-- 
+
+-- X w (Y x Z)
+-- X w (Y x Z)
+
+-- z -> 0
+-- y -> s(x) として
+-- x -> +
+-- w -> * としてみる
+
+-- s(x) * (s(y) + s(z)) = (s(x) * s(y)) + (s(x) * s(z))
+
+-- X w (Y x Z)
+
+-- 1. Base case
+-- z w (Y x Z) = (z w Y) x (z w Z)
+-- 左辺
+-- z w (Y x Z) -> (Y x Z) by(lemma1)
+
+-- z w 何か が z(=0)になることを示す
+-- Y x Zがs(Y+Z)的なものになることを示す
+
+-- Lemma1
+-- z w X = z
+
+-- 1. Base case
+-- z w z = z
+-- z w z -> z
+
+-- 2. Induction case
+-- z w X = z IH
+-- z w X = z IH

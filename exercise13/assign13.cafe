@@ -20,23 +20,27 @@ mod! PNAT principal-sort PNat&Err {
   eq if true then {ME} else {NE} = ME .
   eq if false then {ME} else {NE} = NE .
 
-  op _<_ : PNat PNat -> Bool . eq 0 < 0 = false .
+  op _<_ : PNat PNat -> Bool .
+  eq 0 < 0 = false .
   eq 0 < s(N) = true .
   eq s(M) < 0 = false .
   eq s(M) < s(N) = M < N .
   op _+_ : PNat PNat -> PNat .
-  op _+_ : PNat&Err PNat&Err -> PNat&Err . eq 0 + N = N .
+  op _+_ : PNat&Err PNat&Err -> PNat&Err .
+  eq 0 + N = N .
   eq s(M) + N = s(M + N) .
   eq ME + errPNat = errPNat .
   eq errPNat + NE = errPNat .
 
   op _*_ : PNat PNat -> PNat .
-  op _*_ : PNat&Err PNat&Err -> PNat&Err . eq 0 * N = 0 .
+  op _*_ : PNat&Err PNat&Err -> PNat&Err .
+  eq 0 * N = 0 .
   eq s(M) * N = N + (M * N) .
   eq ME * errPNat = errPNat .
   eq errPNat * NE = errPNat .
   op sd : PNat PNat -> PNat .
-  op sd : PNat&Err PNat&Err -> PNat&Err . eq sd(0,N) = N .
+  op sd : PNat&Err PNat&Err -> PNat&Err .
+  eq sd(0,N) = N .
   eq sd(s(M),0) = s(M) .
   eq sd(s(M),s(N)) = sd(M,N) .
   eq sd(ME,errPNat) = errPNat .
@@ -46,13 +50,15 @@ mod! PNAT principal-sort PNat&Err {
   op _quo_ : PNat NzPNat -> PNat .
   op _quo_ : PNat&Err PNat&Err -> PNat&Err .
   eq M quo 0 = errPNat .
-  eq M quo s(N) = if M < s(N) then {0} else {s(sd(M,s(N)) quo s(N))} . eq ME quo errPNat = errPNat .
+  eq M quo s(N) = if M < s(N) then {0} else {s(sd(M,s(N)) quo s(N))} . 
+  eq ME quo errPNat = errPNat .
   eq errPNat quo NE = errPNat .
   op _rem_ : PNat PZero -> ErrPNat .
   op _rem_ : PNat NzPNat -> PNat .
   op _rem_ : PNat&Err PNat&Err -> PNat&Err .
   eq M rem 0 = errPNat .
-  eq M rem s(N) = if M < s(N) then {M} else {sd(M,s(N)) rem s(N)} . eq ME rem errPNat = errPNat .
+  eq M rem s(N) = if M < s(N) then {M} else {sd(M,s(N)) rem s(N)} .
+  eq ME rem errPNat = errPNat .
   eq errPNat rem NE = errPNat .
 }
 
@@ -123,7 +129,8 @@ mod! VM {
   pr(ILIST)
   pr(STACK)
   op vm : IList -> PNat&Err .
-  op exec : IList Stack -> PNat&Err . var IL : IList .
+  op exec : IList Stack -> PNat&Err . 
+  var IL : IList .
   var PC : PNat .
   var Stk : Stack .
   var N : PNat .
@@ -167,6 +174,7 @@ mod! COMP {
   eq en2n(s(EN)) = s(en2n(EN)) .
 }
 
+set trace on
 mod! VERIFY-COMP { 
   pr(INTER) 
   pr(VM) 
@@ -181,28 +189,74 @@ mod! VERIFY-COMP {
   -- theorem1 
   -- 全ての式に対してインタープリタで実行した結果とコンパイルしたものを仮想機械で実行したものの結果が等しい
   eq th1(E) = (inter(E) = vm(comp(E))) .
-  -- lemma1
-  -- 自然数に対する実行結果の比較
   eq lem1(EN) = (inter(EN) = vm(comp(EN))) .
-  -- lemma2
   eq lem2(E,L,S) = (exec(comp(E) @ L,S) = exec(L,vm(comp(E)) | S)) .
 }
+set trace off
 
-open VERIFY-COMP .
-  -- fresh const
-  op en : -> ExpPNat .
-  -- lemma
-  eq inter(EN) = vm(comp(EN)) .
-  -- check
-  red th1(en) .
-close
+-- open VERIFY-COMP .
+--   -- fresh const
+--   op en : -> ExpPNat .
+--   -- lemma
+--   eq inter(EN) = vm(comp(EN)) .
+--   -- check
+--   red th1(en) .
+-- close
 
-open VERIFY-COMP .
-  -- fresh const
-  ops e1 e2 : -> Exp .
-  -- IH
-  eq inter(e1) = vm(comp(e1)) .
-  eq inter(e2) = vm(comp(e2)) .
-  -- check
-  red th1(e1 + e2) .
-close
+-- open VERIFY-COMP .
+--   -- fresh const
+--   ops e1 e2 : -> Exp .
+--   -- lemmas
+--   eq exec(comp(E) @ L,S) = exec(L,vm(comp(E)) | S) .
+--   -- IH
+--   eq inter(e1) = vm(comp(e1)) .
+--   eq inter(e2) = vm(comp(e2)) .
+--   -- check
+--   red th1(e1 + e2) .
+--   red th1(e1 - e2) .
+--   red th1(e1 * e2) .
+--   red th1(e1 / e2) .
+--   red th1(e1 % e2) .
+-- close
+
+-- -- lemma1
+-- -- inter(EN) = vm(comp(EN))
+-- open VERIFY-COMP .
+--   -- check
+--   red inter(0) = vm(comp(0)) .
+-- close
+
+-- open VERIFY-COMP .
+--   -- fresh const
+--   ops x : -> ExpPNat .
+--   -- IH
+--   eq inter(x) = vm(comp(x)) .
+--   -- check
+--   red inter(s(x)) = vm(comp(s(x))) .
+-- close
+
+-- lemma2
+-- eq exec(comp(E) @ L,S) = exec(L,vm(comp(E)) | S) .
+-- 命令列が与えられたとき、命令列先頭の要素をvmで実行しスタックに積んだものと等しい
+-- exec(comp(en) @ L, S) = exec(L,vm(comp(E)) | S)
+-- exec(comp(en) @ L, S) = exec(L,vm(comp(E)) | S)
+-- open VERIFY-COMP .
+--   -- fresh const
+--   op en : -> ExpPNat .
+--   -- check
+--   red exec(comp(en) @ L,S) = exec(L,vm(comp(en)) | S) .
+-- close
+
+-- open VERIFY-COMP .
+--   -- fresh const
+--   ops e1 e2 : -> Exp .
+--   -- IH
+--   eq exec(comp(e1) @ L,S) = exec(L,vm(comp(e1)) | S) .
+--   eq exec(comp(e2) @ L,S) = exec(L,vm(comp(e2)) | S) .
+--   -- check
+--   red exec(comp(e1 + e2) @ L,S) = exec(L,vm(comp(e1 + e2)) | S) .
+--   red exec(comp(e1 - e2) @ L,S) = exec(L,vm(comp(e1 - e2)) | S) .
+--   red exec(comp(e1 * e2) @ L,S) = exec(L,vm(comp(e1 * e2)) | S) .
+--   red exec(comp(e1 / e2) @ L,S) = exec(L,vm(comp(e1 / e2)) | S) .
+--   red exec(comp(e1 % e2) @ L,S) = exec(L,vm(comp(e1 % e2)) | S) .
+-- close
