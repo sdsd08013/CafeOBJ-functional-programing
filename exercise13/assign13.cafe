@@ -174,7 +174,6 @@ mod! COMP {
   eq en2n(s(EN)) = s(en2n(EN)) .
 }
 
-set trace on
 mod! VERIFY-COMP { 
   pr(INTER) 
   pr(VM) 
@@ -192,6 +191,15 @@ mod! VERIFY-COMP {
   eq lem1(EN) = (inter(EN) = vm(comp(EN))) .
   eq lem2(E,L,S) = (exec(comp(E) @ L,S) = exec(L,vm(comp(E)) | S)) .
 }
+
+set trace on
+open VERIFY-COMP .
+  ops e1 e2 : -> Exp .
+  eq lem1(EN) = (inter(EN) = vm(comp(EN))) .
+  eq lem2(E,L,S) = (exec(comp(E) @ L,S) = exec(L,vm(comp(E)) | S)) .
+  -- red inter(e1 + e2) = vm(comp(e1 + e2)) .
+  red th1(e1 + e2) .
+close
 set trace off
 
 -- open VERIFY-COMP .

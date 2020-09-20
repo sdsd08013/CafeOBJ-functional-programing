@@ -169,3 +169,89 @@ open LIST1 .
   -- check
   red (e | l1) @ nil = (e | l1) .
 close
+
+-- -- rev1(L1) = rev2(L1) induction case
+-- open LIST1 .
+--   -- fresh constants
+--   op l1 : -> List .
+--   op e : -> Elt.E .
+--   -- induction hypothesis
+--   eq rev1(l1) = rev2(l1) .
+--   -- lemmas
+--   eq sr2(L1,E2 | L2) = sr2(L1,nil) @ (E2 | L2) . 
+--   -- check
+--   red rev1(e | l1) = rev2(e | l1) .
+-- close
+
+
+-- theorem rev1(rev2(rev1(L))) = rev2(L)
+-- base case
+-- set trace on 
+-- open LIST1 .
+--   -- check
+--   red rev1(rev2(rev1(nil))) = rev2(nil) .
+-- close
+-- set trace off
+
+-- -- induction case
+-- set trace on
+-- open LIST1 .
+--   -- fresh constants
+--   op l1 : -> List .
+--   op e : -> Elt.E .
+--   -- IH
+--   eq rev1(rev2(rev1(l1))) = rev2(l1) .
+--   -- Lemma
+--   eq rev1(L1) = rev2(L1) .
+--   eq sr2(sr2(sr2(L1,L2),nil),nil) = sr2(L1,L2) .
+--   -- check
+--   red rev1(rev2(rev1(e | l1))) = rev2(e | l1) .
+-- close
+-- set trace off
+
+-- Lemma1 
+-- (sr2(sr2(sr2(L1,L2),nil),nil) = sr2(L1,L2)
+-- Base case
+-- open LIST1 .
+--   ops l1 l2 : -> List .
+--   op e : -> Elt.E  .
+--   -- Lemma2
+--   eq sr2(sr2(l2,(e | nil)),nil) = (e | l2) .
+--   -- check
+--   red sr2(sr2(sr2(nil,(e | l2)),nil),nil) = sr2(nil,(e | l2)) .
+-- close
+
+-- Induction case
+set trace on
+open LIST1 .
+  ops l1 l2 : -> List .
+  ops e e1 : -> Elt.E  .
+  -- IH
+  eq sr2(sr2(sr2(l1,l2),nil),nil) = sr2(l1,l2) .
+  -- check
+  red sr2(sr2(sr2((e1 | l1),l2),nil),nil) = sr2((e1 | l1),l2) .
+close
+set trace off
+
+
+-- Lemma2
+-- Base case
+-- (sr2(sr2(l2,(e | nil)),nil) = (e | l2)):Bool
+-- open LIST1 .
+--   ops l1 l2 : -> List .
+--   ops e1 e2 : -> Elt.E  .
+--   -- check
+--   red sr2(sr2((e1 | l2),(e2 | nil)),nil) = (e2 | (e1 | l2)) .
+-- close
+
+-- -- Lemma2
+-- -- Base case
+-- -- (sr2(nil,(e | l2))):List --> (e | l2):List
+-- set trace on
+-- open LIST1 .
+--   ops l1 l2 : -> List .
+--   op e : -> Elt.E  .
+--   -- check
+--   red sr2(nil,(e | l2)) = (e | l2) .
+-- close
+-- set trace off
