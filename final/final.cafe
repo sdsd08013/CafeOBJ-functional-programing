@@ -4,7 +4,7 @@ mod! A {
   op y : A -> A {constr} .
   op _x_ : A A -> A .
   op _w_ : A A -> A .
-  vars X Y : A .
+  vars X Y Z : A .
   -- X + 0 -> X
   eq [x1] : X x z = X .
   -- X + y(Y) = y(X) + X
@@ -14,19 +14,45 @@ mod! A {
   -- X * y(Y) = X + (X * Y)
   eq [w2] : X w y(Y) = X x (X w Y) .
 }
+
 -- y: var(変数)を受け取りsortAを返す
 -- z: sortAを返す zは変数を持たないtermsでground terms
+
+-- Base case
+-- Xに注目
+set trace on
+open A .
+  ops a b c : -> A .
+  -- lemma
+  eq [lemma1] : z w X = z .
+  red a w (b x z) = (a w b) x (a w z) .
+close
+set trace off
+
+-- Induction case
+set trace on
+open A .
+  ops a b c : -> A .
+  -- IH
+  eq a w (b x c) = (a w b) x (a w c) .
+  eq (b x c) w a = (a w b) x (a w c) .
+  -- lemma
+  eq [lemma2] : X x y(Y) = y(X x Y) .
+  eq [ttt] : X x (Y x Z) = (X x Y) x Z .
+  eq [ttt2] : X x (X w Y) = (X w Y) x X .
+  eq [ttt3] : (X x Y) x Z = (X x Z) x Y .
+  -- check
+  red a w (b x y(c)) = (a w b) x (a w y(c)) .
+close
+set trace off
 
 set trace on
 open A .
   ops a b c : -> A .
-  -- red X w (Y x Z) = (X w Y) w (X w Z) .
-  red  .
-  -- red a w (b x z) .
-  -- red (a w b) w (a w c) .
+  eq [ih] : a x y(b) = y(a x b) .
+  red a x y(y(b)) = y(a x y(b)) .
 close
 set trace off
--- 
 
 -- X w (Y x Z)
 -- X w (Y x Z)
@@ -58,3 +84,105 @@ set trace off
 -- 2. Induction case
 -- z w X = z IH
 -- z w X = z IH
+
+
+"
+Problem1
+"
+mod! HenoHeno {
+  [HenoHeno]
+  pr(NAT)
+  op mo : -> HenoHeno {constr} .
+  op _he_ : Nat HenoHeno -> HenoHeno {constr} .
+  op _ji_ : HenoHeno HenoHeno -> HenoHeno {constr} .
+  var E : Nat .
+  vars H1 H2 : HenoHeno .
+  eq [ji1] : mo ji H2 = H2 .
+  eq [ji2] : (E he H1) ji H2 = E he (H1 ji H2) .
+}
+
+"
+Problem2
+"
+mod! Qsort {
+  [ListA]
+  pr(NAT)
+  op nil : -> ListA {constr} .
+  op _|_ : Nat ListA -> ListA {constr} .
+  op _@_ : ListA ListA -> ListA {constr} .
+  
+  var E : Nat .
+  op r : ListA -> ListA .
+  eq [r1] : r(nil) = nil .
+  eq [r2] : r(E | L) = r(L) @ (E | nil) .
+
+  op qsort : ListA -> ListA .
+  op par : Nat ListA ListA ListA -> ListA .
+  op if_then{_}else{_} : Bool ListA ListA -> ListA .
+  vars X Y : Nat .
+  vars L LL RL : ListA .
+  eq [if1] : if true then {LL} else {RL} = LL .
+  eq [if2] : if false then {LL} else {RL} = RL .
+
+  eq [q1] : qsort(nil) = nil .
+  eq [q2] : qsort(X | nil) = X | nil .
+  eq [q3] : qsort(X | Y | L) = par(X, Y | L, nil, nil) .
+  eq [p1] : par(X, nil, LL, RL) = qsort(LL) @ (X | qsort(RL)) .
+  eq [p2] : par(X, Y | L, LL, RL) = if Y < X then {par(X,L,Y | LL,RL)} else {par(X,L,LL,Y | RL)} .
+}
+
+-- open Qsort .
+--   red r(0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | nil) .
+-- close
+
+"
+Problem3
+"
+mod! Bsort {
+  pr(NAT)
+  [Nat Dollar < Nat&$]
+  op $ : -> Dollar {constr} .
+
+  [NatList Nat$List < Nat&$-List]
+  op nil : -> NatList {constr} .
+  op _|_ : Nat NatList -> NatList {constr} .
+  op _|_ : Dollar Nat&$-List -> Nat$List {constr} .
+  op _|_ : Nat Nat$List -> Nat$List {constr} .
+  op _|_ : Nat Nat&$-List -> Nat&$-List {constr} .
+
+  op if_then{_}else{_} : Bool Nat&$-List Nat&$-List -> Nat&$-List .
+  vars L&$1 L&$2 : Nat&$-List .
+  eq [if1] : if true then {L&$1} else {L&$2} = L&$1 .
+  eq [if2] : if false then {L&$1} else {L&$2} = L&$2 .
+
+  op bsort : NatList -> NatList .
+  op sbs : Nat&$-List -> NatList .
+  op swap : Nat&$-List -> Nat&$-List .
+  vars X Y : Nat .
+  var L : NatList .
+  var L$ : Nat$List .
+  var L&$ : Nat&$-List .
+
+  -- op del$ : Nat&$-List -> NatList .
+  -- op sd$ : Nat&$-List -> Nat&$-List .
+  -- eq [d$1] : del$(L) = L .
+  -- eq [d$2] : del$(L$) = del$(sd$(L$)) .
+  -- eq [sd$1] : sd$(nil) = nil .
+  -- eq [sd$2] : sd$(X | L&$) = X | sd$(L&$) .
+  -- eq [sd$3] : sd$($ | L&$) = L&$ .
+
+  eq [bsort1] : bsort(nil) = nil .
+  eq [bsort2] : bsort(X | nil) = X | nil .
+  eq [bsort3] : bsort(X | Y | L) = sbs(swap(X | Y | L)) .
+  eq [sbs1] : sbs(L) = L .
+  eq [sbs2] : sbs(L$) = sbs(swap(L$)) .
+  eq [swap1] : swap(nil) = nil .
+  eq [swap2] : swap(X | nil) = X | nil .
+  eq [swap3] : swap($ | L&$) = swap(L&$) .
+  eq [swap4] : swap(X | $ | L&$) = swap(X | L&$) .
+  eq [swap5] : swap(X | Y | L&$) = if Y < X then {$ | Y | swap(X | L&$)} else {X | swap(Y | L&$)} .
+}
+
+-- open Bsort .
+--   red bsort(7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 | nil) .
+-- close

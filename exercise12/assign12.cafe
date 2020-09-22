@@ -7,7 +7,7 @@ mod! LIST1 (E :: TRIV) {
   eq (nil = E | L1) = false .
   eq (E | L1 = E2 | L2) = (E = E2) and (L1 = L2) .
   -- append
-  op _@_ : List List -> List .
+  op _@_ : List List -> List  .
   eq nil @ L2 = L2 . -- (@1)
   -- L1,L2を連結して先頭にEを置く
   eq (E | L1) @ L2 = E | (L1 @ L2) . -- (@2)
@@ -184,6 +184,9 @@ close
 -- close
 
 
+"
+Theorem rev1(rev2(rev1(L))) = rev2(L)
+"
 -- theorem rev1(rev2(rev1(L))) = rev2(L)
 -- base case
 -- set trace on 
@@ -195,44 +198,43 @@ close
 
 -- -- induction case
 -- set trace on
--- open LIST1 .
---   -- fresh constants
---   op l1 : -> List .
---   op e : -> Elt.E .
---   -- IH
---   eq rev1(rev2(rev1(l1))) = rev2(l1) .
---   -- Lemma
---   eq rev1(L1) = rev2(L1) .
---   eq sr2(sr2(sr2(L1,L2),nil),nil) = sr2(L1,L2) .
---   -- check
---   red rev1(rev2(rev1(e | l1))) = rev2(e | l1) .
--- close
+open LIST1 .
+  -- fresh constants
+  op l1 : -> List .
+  op e : -> Elt.E .
+  -- IH
+  eq rev1(rev2(rev1(l1))) = rev2(l1) .
+  -- Lemma
+  eq rev1(L1) = rev2(L1) .
+  eq sr2(sr2(sr2(L1,L2),nil),nil) = sr2(L1,L2) .
+  -- check
+  red rev1(rev2(rev1(e | l1))) = rev2(e | l1) .
+close
 -- set trace off
 
 -- Lemma1 
 -- (sr2(sr2(sr2(L1,L2),nil),nil) = sr2(L1,L2)
 -- Base case
--- open LIST1 .
---   ops l1 l2 : -> List .
---   op e : -> Elt.E  .
---   -- Lemma2
---   eq sr2(sr2(l2,(e | nil)),nil) = (e | l2) .
---   -- check
---   red sr2(sr2(sr2(nil,(e | l2)),nil),nil) = sr2(nil,(e | l2)) .
--- close
+set trace on
+open LIST1 .
+  ops l1 l2 : -> List .
+  op e : -> Elt.E  .
+  -- Lemma
+  -- eq sr2(sr2(L1, L2),nil) = L2 @ L1 .
+  -- check
+  red sr2(sr2(sr2(nil,l2),nil),nil) = sr2(nil,l2) .
+close
+set trace off
 
 -- Induction case
-set trace on
 open LIST1 .
   ops l1 l2 : -> List .
   ops e e1 : -> Elt.E  .
   -- IH
-  eq sr2(sr2(sr2(l1,l2),nil),nil) = sr2(l1,l2) .
+  eq sr2(sr2(sr2(l1,L2),nil),nil) = sr2(l1,L2) .
   -- check
   red sr2(sr2(sr2((e1 | l1),l2),nil),nil) = sr2((e1 | l1),l2) .
 close
-set trace off
-
 
 -- Lemma2
 -- Base case
@@ -240,18 +242,30 @@ set trace off
 -- open LIST1 .
 --   ops l1 l2 : -> List .
 --   ops e1 e2 : -> Elt.E  .
+--   -- Lemma3
+--   eq L1 @ nil = L1 .
 --   -- check
---   red sr2(sr2((e1 | l2),(e2 | nil)),nil) = (e2 | (e1 | l2)) .
+--   red sr2(sr2(nil,l2),nil) = l2 @ nil .
 -- close
 
--- -- Lemma2
--- -- Base case
--- -- (sr2(nil,(e | l2))):List --> (e | l2):List
 -- set trace on
 -- open LIST1 .
 --   ops l1 l2 : -> List .
---   op e : -> Elt.E  .
---   -- check
---   red sr2(nil,(e | l2)) = (e | l2) .
+--   ops e1 e2 : -> Elt.E  .
+--   -- IH
+--   eq sr2(l1, nil) = rev1(l1) .
+--   red sr2((e1 | l1), nil) = rev1(e1 | l1) .
 -- close
 -- set trace off
+
+-- (sr2(sr2(l2,nil),nil) = l2):Bool
+open LIST1 .
+  red sr2(sr2(nil,nil),nil) = nil .
+close
+
+open LIST1 .
+  ops l1 l2 : -> List .
+  ops e1 e2 : -> Elt.E  .
+  eq sr2(sr2(l1,nil),nil) = l1 .
+  red sr2(sr2((e1 | l1),nil),nil) = (e1 | l1) .
+close
